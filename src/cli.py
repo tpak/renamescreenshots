@@ -3,7 +3,9 @@
 import argparse
 import logging
 import os
+
 from rename_screenshots import rename_screenshots
+
 
 def main():
     """
@@ -30,12 +32,13 @@ def main():
         if args.use_default_dir
         else args.directory
     )
-    
+
     logging.basicConfig(level=logging.INFO)
     total_files, renamed_files = rename_screenshots(directory)
 
     logging.info(f"Total files iterated: {total_files}")
     logging.info(f"Total files renamed: {renamed_files}")
+
 
 if __name__ == "__main__":
     main()

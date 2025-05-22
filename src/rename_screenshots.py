@@ -1,39 +1,41 @@
 #!/usr/bin/env python3
-
 import argparse
 import logging
 import os
 import re
-import sys
 from datetime import datetime
+from typing import Tuple
 
-def rename_screenshots(directory):
+
+def rename_screenshots(directory: str) -> Tuple[int, int]:
     """
     Rename screenshot files in the specified directory to a consistent format.
 
     Args:
         directory (str): The directory containing the screenshot files.
+
+    Returns:
+        Tuple[int, int]: (total matching files, renamed files)
     """
     total_files = 0
     renamed_files = 0
 
-    # Iterate over all files in the directory
+    pattern = re.compile(
+        r"Screenshot (\d{4}-\d{2}-\d{2}) at (\d{1,2})\.(\d{2})\.(\d{2})\s*([APMapm]{2})\.(\w+)",
+        re.IGNORECASE,
+    )
+
     for filename in os.listdir(directory):
-        total_files += 1
-        match = re.match(
-            r"Screenshot (\d{4}-\d{2}-\d{2}) at (\d{1,2})\.(\d{2})\.(\d{2})\s([APM]{2})\.(\w+)",
-            filename,
-            re.IGNORECASE,
-        )
+        match = pattern.match(filename)
         if match:
+            total_files += 1
             date, hour, minute, second, period, extension = match.groups()
-            # Convert to 24-hour format
             hour = int(hour)
+            period = period.upper()
             if period == "PM" and hour != 12:
                 hour += 12
             elif period == "AM" and hour == 12:
                 hour = 0
-            # Rename the file, the :02 formats the hour to have a leading zero if needed
             new_filename = (
                 f"screenshot {date} at {hour:02}.{minute}.{second}.{extension}"
             )
@@ -48,6 +50,7 @@ def rename_screenshots(directory):
                 logging.error(f"Error renaming {old_filepath} to {new_filepath}: {e}")
 
     return total_files, renamed_files
+
 
 def main():
     """
@@ -78,6 +81,7 @@ def main():
 
     logging.info(f"Total files iterated: {total_files}")
     logging.info(f"Total files renamed: {renamed_files}")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
