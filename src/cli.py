@@ -1,4 +1,4 @@
-# filepath: /screenshotrename/screenshotrename/src/cli.py
+#!/usr/bin/env python3
 
 import argparse
 import logging
