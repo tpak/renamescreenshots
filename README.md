@@ -1,4 +1,5 @@
 # Screenshot Renamer
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This project provides a tool for renaming screenshot files to a consistent format. It can be used as a command-line interface (CLI) tool or as a Streamlit web application. I use it on my Mac, you can adapt as needed.
 
