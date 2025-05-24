@@ -1,5 +1,7 @@
 # Screenshot Renamer
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CodeQL Advanced](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml)
+[![Python application](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml)
 
 This project provides a tool for renaming screenshot files to a consistent format. It can be used as a command-line interface (CLI) tool or as a Streamlit web application. I use it on my Mac, you can adapt as needed.
 
