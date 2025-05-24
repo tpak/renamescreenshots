@@ -1,0 +1,39 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# macOS system files
+.DS_Store
+
+# Streamlit cache
+.streamlit/
+
+# Test and coverage outputs
+.coverage
+htmlcov/
+*.cover
+*.log
+
+# Pipenv and poetry files
+Pipfile.lock
+poetry.lock
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
