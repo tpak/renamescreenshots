@@ -26,9 +26,9 @@ def rename_screenshots(directory: str) -> Tuple[int, int]:
     )
 
     for filename in os.listdir(directory):
+        total_files += 1  # Count every file in the directory
         match = pattern.match(filename)
         if match:
-            total_files += 1
             date, hour, minute, second, period, extension = match.groups()
             hour = int(hour)
             period = period.upper()
