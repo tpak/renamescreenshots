@@ -42,10 +42,15 @@ def main():
         format='%(levelname)s:%(name)s: %(message)s'
     )
 
-    total_files, renamed_files = rename_screenshots(directory)
+    try:
+        total_files, renamed_files = rename_screenshots(directory)
+        logger.info(f"Total files scanned: {total_files}")
+        logger.info(f"Total files renamed: {renamed_files}")
+    except (ValueError, FileNotFoundError, NotADirectoryError, PermissionError) as e:
+        logger.error(f"Error: {e}")
+        return 1
 
-    logger.info(f"Total files scanned: {total_files}")
-    logger.info(f"Total files renamed: {renamed_files}")
+    return 0
 
 
 if __name__ == "__main__":

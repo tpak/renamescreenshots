@@ -34,26 +34,32 @@ def rename():
             'error': 'No directory specified'
         }), 400
 
-    expanded_dir = os.path.expanduser(directory)
-
-    if not os.path.isdir(expanded_dir):
-        return jsonify({
-            'success': False,
-            'error': f'Directory does not exist: {directory}'
-        }), 400
-
     try:
-        total_files, renamed_files = rename_screenshots(expanded_dir)
+        # The rename_screenshots function now handles all validation
+        total_files, renamed_files = rename_screenshots(directory)
         return jsonify({
             'success': True,
             'total_files': total_files,
             'renamed_files': renamed_files,
             'message': f'Successfully renamed {renamed_files} out of {total_files} files'
         })
-    except Exception as e:
+    except (ValueError, FileNotFoundError, NotADirectoryError) as e:
+        # User input errors - 400 Bad Request
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 400
+    except PermissionError as e:
+        # Permission errors - 403 Forbidden
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 403
+    except Exception as e:
+        # Unexpected errors - 500 Internal Server Error
+        return jsonify({
+            'success': False,
+            'error': f'Unexpected error: {str(e)}'
         }), 500
 
 
