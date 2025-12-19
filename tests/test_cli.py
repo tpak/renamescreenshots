@@ -9,9 +9,9 @@ def test_cli_runs_and_renames(tmp_path):
     test_file = tmp_path / "Screenshot 2024-05-24 at 1.23.45 PM.png"
     test_file.write_text("test")
 
-    # Run the CLI as a subprocess
+    # Run the CLI as a module
     result = subprocess.run(
-        [sys.executable, "src/cli.py", str(tmp_path)],
+        [sys.executable, "-m", "src.cli", str(tmp_path)],
         capture_output=True,
         text=True,
     )
@@ -28,7 +28,7 @@ def test_cli_with_no_matching_files(tmp_path):
     test_file.write_text("test")
 
     result = subprocess.run(
-        [sys.executable, "src/cli.py", str(tmp_path)],
+        [sys.executable, "-m", "src.cli", str(tmp_path)],
         capture_output=True,
         text=True,
     )
@@ -52,7 +52,7 @@ def test_cli_use_default_dir(monkeypatch, tmp_path):
     env["HOME"] = str(fake_home)
 
     result = subprocess.run(
-        [sys.executable, "src/cli.py", "--use-default-dir"],
+        [sys.executable, "-m", "src.cli", "--use-default-dir"],
         capture_output=True,
         text=True,
         env=env,  # <-- Pass the patched environment

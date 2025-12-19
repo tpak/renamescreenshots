@@ -4,16 +4,9 @@
 # or
 # python -m pytest
 import os
-import shutil
-import sys
 import tempfile
 
-from rename_screenshots import rename_screenshots
-
-# Import the function to be tested
-
-# Add the src directory to the Python path
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+from src.rename_screenshots import rename_screenshots
 
 
 def create_file(path):

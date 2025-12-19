@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot Renamer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #059669;
+            --error: #dc2626;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .container {
+            background: var(--surface);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 100%;
+            padding: 3rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .help-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.875rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.success {
+            background: rgba(5, 150, 105, 0.1);
+            border: 2px solid var(--success);
+            color: var(--success);
+            display: block;
+        }
+
+        .result.error {
+            background: rgba(220, 38, 38, 0.1);
+            border: 2px solid var(--error);
+            color: var(--error);
+            display: block;
+        }
+
+        .result-icon {
+            font-size: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        .result-message {
+            font-weight: 500;
+        }
+
+        .result-details {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">📸</div>
+            <h1>Screenshot Renamer</h1>
+            <p class="subtitle">Convert macOS screenshots to sortable format</p>
+        </div>
+
+        <form id="renameForm">
+            <div class="form-group">
+                <label for="directory">Directory Path</label>
+                <input
+                    type="text"
+                    id="directory"
+                    name="directory"
+                    value="{{ default_directory }}"
+                    placeholder="~/Desktop/Screenshots"
+                    required
+                >
+                <p class="help-text">
+                    Enter the path to your screenshots folder.
+                    Use <code>~</code> for your home directory.
+                </p>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <span id="btnText">Rename Screenshots</span>
+            </button>
+        </form>
+
+        <div id="result" class="result"></div>
+
+        <div class="footer">
+            <p class="footer-text">
+                Converts "Screenshot 2024-05-24 at 1.23.45 PM.png" to<br>
+                "screenshot 2024-05-24 at 13.23.45.png" for proper sorting
+            </p>
+            <p class="footer-text" style="margin-top: 1rem;">
+                Made with ❤️ by <a href="https://github.com/tpak" class="footer-link" target="_blank">tpak</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('renameForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const directory = document.getElementById('directory').value;
+
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Processing...';
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/rename', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ directory }),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <div>
+                            <span class="result-icon">✅</span>
+                            <span class="result-message">${data.message}</span>
+                        </div>
+                        <div class="result-details">
+                            Scanned ${data.total_files} file${data.total_files !== 1 ? 's' : ''},
+                            renamed ${data.renamed_files} screenshot${data.renamed_files !== 1 ? 's' : ''}
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'An error occurred');
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <div>
+                        <span class="result-icon">❌</span>
+                        <span class="result-message">Error</span>
+                    </div>
+                    <div class="result-details">${error.message}</div>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                btnText.textContent = 'Rename Screenshots';
+            }
+        });
+
+        document.getElementById('directory').focus();
+    </script>
+</body>
+</html>

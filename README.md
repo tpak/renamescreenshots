@@ -3,90 +3,131 @@
 [![CodeQL Advanced](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml)
 [![Python application](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml)
 
-This project provides a tool for renaming screenshot files to a consistent format. It can be used as a command-line interface (CLI) tool or as a Streamlit web application. I use it on my Mac, you can adapt as needed.
+A clean, simple macOS utility for renaming screenshot files to a sortable format. Available as both a command-line tool and a beautiful web interface.
+
+## Why?
+
+macOS names screenshots like `Screenshot 2024-05-24 at 1.23.45 PM.png`, which don't sort chronologically in Finder. This tool converts them to `screenshot 2024-05-24 at 13.23.45.png`, making them properly sortable and easier to find when dragging into Slack, Teams, or email.
 
 ## Features
 
-- Rename screenshot files in a specified directory.
-- Supports both CLI and Streamlit interface for user interaction.
-- Automatically converts time from 12-hour to 24-hour format. This keeps the files sorted in finder and makes it easier to find the latest and drag them into Slack, Teams, email, etc.
-- Yes, there are probably easier ways
+- 🎯 Simple, focused functionality - does one thing well
+- 💻 Command-line interface for automation and scripting
+- 🌐 Beautiful web interface for visual interaction
+- ⚡ Fast and efficient - no heavy dependencies
+- ✅ Fully tested with comprehensive test suite
+- 📦 Properly packaged as an installable Python module
 
-## Project Structure
+## Quick Start
 
-```
-renamescreenshots
-├── src
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── streamlit_app.py
-│   └── rename_screenshots.py
-├── tests
-│   ├── test_cli.py
-│   └── test_rename_screenshots.py
-├── requirements.txt
-└── README.md
-```
+### Installation
 
-## Installation
+```bash
+# Clone the repository
+git clone https://github.com/tpak/renamescreenshots.git
+cd renamescreenshots
 
-To install the required dependencies, run:
-
-```
-pip install -r requirements.txt
+# Install the package in development mode
+pip install -e .
 ```
 
-> **Note:** `argparse` and `logging` are part of the Python standard library and do not need to be installed separately. CoPilot really wants me to tell you this :-)
+For development with testing dependencies:
+```bash
+pip install -e ".[dev]"
+```
 
 ## Usage
 
-### Command-Line Interface
+### Web Interface (Recommended)
 
-To use the CLI tool, run:
+The web interface provides a beautiful, user-friendly way to rename your screenshots.
 
-```
-python -m src.cli [directory]
-
-or
-
-python src/cli.py [directory]
-```
-
-- Replace `[directory]` with the path to the directory containing the screenshot files. If no directory is specified, it will default to the current working directory.
-- You can also use the `--use-default-dir` flag to process `~/Desktop/Screenshots`:
-  ```
-  python -m src.cli --use-default-dir
-  ```
-
-### Streamlit Application
-
-To run the Streamlit application, you have two options:
-
-**Option 1: Use the helper script (recommended)**
-
-From the project root, run:
-```
+**Using the helper script:**
+```bash
 ./rename-ui.sh
 ```
-This will launch the Streamlit web interface for renaming screenshots.
 
-> **Hint:** If you haven't already, make the script executable with:
-> ```
-> chmod +x rename-ui.sh
-> ```
-
-**Option 2: Use the Streamlit CLI directly**
-
-```
-streamlit run src/streamlit_app.py
+**Or run directly:**
+```bash
+python -m src.web_app
 ```
 
-This will start a local web server and open the Streamlit interface in your web browser, allowing you to select a directory and view the renaming results interactively.
+Then open your browser to `http://localhost:5000`
+
+### Command-Line Interface
+
+Perfect for automation, scripts, or terminal lovers.
+
+**Rename screenshots in a specific directory:**
+```bash
+python -m src.cli /path/to/screenshots
+```
+
+**Use the default macOS screenshots directory:**
+```bash
+python -m src.cli --use-default-dir
+```
+
+**Or use the current directory:**
+```bash
+python -m src.cli
+```
+
+### As an Installed Command
+
+After installation, you can also use the installed command:
+```bash
+screenshot-rename /path/to/screenshots
+screenshot-rename --use-default-dir
+```
+
+## Development
+
+### Running Tests
+
+```bash
+pytest
+```
+
+Or with verbose output:
+```bash
+pytest -v
+```
+
+### Project Structure
+
+```
+renamescreenshots/
+├── src/
+│   ├── __init__.py
+│   ├── cli.py                  # Command-line interface
+│   ├── rename_screenshots.py   # Core renaming logic
+│   ├── web_app.py             # Flask web application
+│   ├── templates/
+│   │   └── index.html         # Web interface template
+│   └── static/                # Static assets (if needed)
+├── tests/
+│   ├── test_cli.py
+│   └── test_rename_screenshots.py
+├── pyproject.toml             # Modern Python packaging
+├── requirements.txt
+└── README.md
+```
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
 
+### Guidelines
+- Keep it simple - this is a focused utility
+- Maintain test coverage
+- Follow existing code style
+- Update documentation as needed
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+## Author
+
+Created by [Chris Tirpak](https://github.com/tpak)

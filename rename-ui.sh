@@ -1,2 +1,2 @@
 #!/bin/bash
-streamlit run src/streamlit_app.py "$@"
+python -m src.web_app "$@"

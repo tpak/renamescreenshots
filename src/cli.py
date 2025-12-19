@@ -4,7 +4,7 @@ import argparse
 import logging
 import os
 
-from rename_screenshots import rename_screenshots
+from .rename_screenshots import rename_screenshots
 
 
 def main():
