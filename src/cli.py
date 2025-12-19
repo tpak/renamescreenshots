@@ -6,6 +6,9 @@ import os
 
 from .rename_screenshots import rename_screenshots
 
+# Create a custom logger
+logger = logging.getLogger('screenshot_renamer')
+
 
 def main():
     """
@@ -33,11 +36,16 @@ def main():
         else args.directory
     )
 
-    logging.basicConfig(level=logging.INFO)
+    # Configure logging with custom format
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)s:%(name)s: %(message)s'
+    )
+
     total_files, renamed_files = rename_screenshots(directory)
 
-    logging.info(f"Total files iterated: {total_files}")
-    logging.info(f"Total files renamed: {renamed_files}")
+    logger.info(f"Total files scanned: {total_files}")
+    logger.info(f"Total files renamed: {renamed_files}")
 
 
 if __name__ == "__main__":

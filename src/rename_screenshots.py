@@ -6,6 +6,9 @@ import re
 from datetime import datetime
 from typing import Tuple
 
+# Create a custom logger for this module
+logger = logging.getLogger('screenshot_renamer')
+
 
 def rename_screenshots(directory: str) -> Tuple[int, int]:
     """
@@ -42,11 +45,11 @@ def rename_screenshots(directory: str) -> Tuple[int, int]:
             old_filepath = os.path.join(directory, filename)
             new_filepath = os.path.join(directory, new_filename)
             try:
-                logging.info(f"Renaming {old_filepath} to {new_filepath}")
+                logger.info(f"Renaming {old_filepath} to {new_filepath}")
                 os.rename(old_filepath, new_filepath)
-                logging.info(f"Successfully renamed to {new_filename}")
+                logger.info(f"Successfully renamed to {new_filename}")
                 renamed_files += 1
             except OSError as e:
-                logging.error(f"Error renaming {old_filepath} to {new_filepath}: {e}")
+                logger.error(f"Error renaming {old_filepath} to {new_filepath}: {e}")
 
     return total_files, renamed_files
