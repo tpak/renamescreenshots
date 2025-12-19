@@ -5,18 +5,25 @@ import os
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional, List
 
 # Create a custom logger for this module
 logger = logging.getLogger('screenshot_renamer')
 
+# Default whitelist - None means allow all directories
+# Can be overridden via environment variable SCREENSHOT_RENAMER_WHITELIST
+DEFAULT_WHITELIST = None
 
-def validate_directory(directory: str) -> str:
+
+def validate_directory(directory: str, whitelist: Optional[List[str]] = None) -> str:
     """
     Validate and sanitize the directory path.
 
     Args:
         directory (str): The directory path to validate
+        whitelist (Optional[List[str]]): List of allowed directory paths.
+                                        If None, all directories are allowed.
+                                        Paths in whitelist should be absolute.
 
     Returns:
         str: The absolute, normalized path
@@ -25,6 +32,7 @@ def validate_directory(directory: str) -> str:
         ValueError: If the path is invalid or unsafe
         FileNotFoundError: If the directory doesn't exist
         NotADirectoryError: If the path exists but is not a directory
+        PermissionError: If directory is not in whitelist or insufficient permissions
     """
     if not directory or not directory.strip():
         raise ValueError("Directory path cannot be empty")
@@ -54,16 +62,41 @@ def validate_directory(directory: str) -> str:
     if not os.access(real_path, os.W_OK):
         raise PermissionError(f"No write permission for directory: {directory}")
 
+    # Check whitelist if provided
+    if whitelist is not None:
+        # Normalize whitelist paths
+        normalized_whitelist = [os.path.realpath(os.path.expanduser(p)) for p in whitelist]
+
+        # Check if the real_path is in the whitelist or is a subdirectory of a whitelisted path
+        is_allowed = any(
+            real_path == allowed_path or real_path.startswith(allowed_path + os.sep)
+            for allowed_path in normalized_whitelist
+        )
+
+        if not is_allowed:
+            logger.warning(f"Directory not in whitelist: {real_path}")
+            raise PermissionError(
+                f"Directory not allowed. Path '{directory}' is not in the whitelist of permitted directories."
+            )
+
+        logger.info(f"Directory approved by whitelist: {real_path}")
+
     logger.info(f"Validated directory: {real_path}")
     return real_path
 
 
-def rename_screenshots(directory: str) -> Tuple[int, int]:
+def rename_screenshots(
+    directory: str,
+    whitelist: Optional[List[str]] = None
+) -> Tuple[int, int]:
     """
     Rename screenshot files in the specified directory to a consistent format.
 
     Args:
         directory (str): The directory containing the screenshot files.
+        whitelist (Optional[List[str]]): Optional list of allowed directories.
+                                        If provided, only these directories (and subdirectories)
+                                        can be processed. If None, all directories are allowed.
 
     Returns:
         Tuple[int, int]: (total matching files, renamed files)
@@ -72,10 +105,18 @@ def rename_screenshots(directory: str) -> Tuple[int, int]:
         ValueError: If the directory path is invalid
         FileNotFoundError: If the directory doesn't exist
         NotADirectoryError: If the path is not a directory
-        PermissionError: If insufficient permissions
+        PermissionError: If insufficient permissions or directory not in whitelist
     """
+    # Load whitelist from environment if not provided and environment variable is set
+    if whitelist is None:
+        env_whitelist = os.environ.get('SCREENSHOT_RENAMER_WHITELIST')
+        if env_whitelist:
+            # Parse colon-separated paths from environment variable
+            whitelist = [p.strip() for p in env_whitelist.split(':') if p.strip()]
+            logger.info(f"Loaded whitelist from environment: {whitelist}")
+
     # Validate the directory first
-    validated_dir = validate_directory(directory)
+    validated_dir = validate_directory(directory, whitelist=whitelist)
 
     total_files = 0
     renamed_files = 0
