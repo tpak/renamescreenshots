@@ -139,7 +139,8 @@ renamescreenshots/
 ├── tests/
 │   ├── test_cli.py
 │   ├── test_rename_screenshots.py
-│   └── test_security.py
+│   ├── test_security.py
+│   └── test_web_app.py
 ├── pyproject.toml             # Modern Python packaging
 ├── requirements.txt
 └── README.md
