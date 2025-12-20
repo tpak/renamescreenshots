@@ -14,6 +14,7 @@ macOS names screenshots like `Screenshot 2024-05-24 at 1.23.45 PM.png`, which do
 - 🎯 Simple, focused functionality - does one thing well
 - 💻 Command-line interface for automation and scripting
 - 🌐 Beautiful web interface for visual interaction
+- 🔒 Comprehensive security features (CSRF protection, path validation, sanitization)
 - ⚡ Fast and efficient - no heavy dependencies
 - ✅ Fully tested with comprehensive test suite
 - 📦 Properly packaged as an installable Python module
@@ -54,6 +55,12 @@ python -m src.web_app
 
 Then open your browser to `http://localhost:5000`
 
+**For production use, set a persistent SECRET_KEY:**
+```bash
+export SCREENSHOT_RENAMER_SECRET_KEY="your-secret-key-here"
+./rename-ui.sh
+```
+
 ### Command-Line Interface
 
 Perfect for automation, scripts, or terminal lovers.
@@ -70,6 +77,17 @@ python -m src.cli --use-default-dir
 
 **Or use the current directory:**
 ```bash
+python -m src.cli
+```
+
+**With directory whitelist for additional security:**
+```bash
+python -m src.cli --whitelist ~/Desktop/Screenshots ~/Documents/Screenshots
+```
+
+You can also set a whitelist via environment variable:
+```bash
+export SCREENSHOT_RENAMER_WHITELIST="~/Desktop/Screenshots:~/Documents/Screenshots"
 python -m src.cli
 ```
 
@@ -108,11 +126,27 @@ renamescreenshots/
 │   └── static/                # Static assets (if needed)
 ├── tests/
 │   ├── test_cli.py
-│   └── test_rename_screenshots.py
+│   ├── test_rename_screenshots.py
+│   └── test_security.py
 ├── pyproject.toml             # Modern Python packaging
 ├── requirements.txt
 └── README.md
 ```
+
+## Security Features
+
+This utility includes comprehensive security protections:
+
+- **Path Validation**: All directory paths are validated and normalized to prevent path traversal attacks
+- **Directory Whitelist**: Optional whitelist to restrict operations to specific directories only
+- **File Sanitization**: Filenames are sanitized to prevent null bytes, control characters, and path traversal attempts
+- **CSRF Protection**: Web interface includes CSRF token validation to prevent cross-site request forgery
+- **Secure Configuration**: Support for environment variables to manage secrets securely
+
+### Environment Variables
+
+- `SCREENSHOT_RENAMER_WHITELIST`: Colon-separated list of allowed directories (optional)
+- `SCREENSHOT_RENAMER_SECRET_KEY`: Secret key for Flask sessions (recommended for web interface)
 
 ## Contributing
 
