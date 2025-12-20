@@ -5,20 +5,36 @@ Simple, beautiful, and functional.
 """
 
 import os
+import secrets
 from pathlib import Path
 
 from flask import Flask, render_template, request, jsonify
+from flask_wtf.csrf import CSRFProtect
 
 from .rename_screenshots import rename_screenshots
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24)
+
+# Use environment variable for SECRET_KEY, or generate a secure random key
+# For production, always set SCREENSHOT_RENAMER_SECRET_KEY environment variable
+SECRET_KEY = os.environ.get('SCREENSHOT_RENAMER_SECRET_KEY')
+if not SECRET_KEY:
+    # Generate a secure random key for development
+    SECRET_KEY = secrets.token_hex(32)
+    print("⚠️  WARNING: Using randomly generated SECRET_KEY. Set SCREENSHOT_RENAMER_SECRET_KEY environment variable for production.")
+
+app.config['SECRET_KEY'] = SECRET_KEY
+app.config['WTF_CSRF_TIME_LIMIT'] = None  # CSRF tokens don't expire (simple single-user app)
+
+# Enable CSRF protection
+csrf = CSRFProtect(app)
 
 
 @app.route('/')
 def index():
     """Render the main page."""
     default_dir = os.path.expanduser("~/Desktop/Screenshots")
+    # CSRF token is automatically made available in templates by Flask-WTF
     return render_template('index.html', default_directory=default_dir)
 
 
