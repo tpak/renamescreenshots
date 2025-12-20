@@ -27,6 +27,7 @@ classifiers = [
 ]
 dependencies = [
     "flask>=3.0.0",
+    "flask-wtf>=1.2.0",
 ]
 
 [project.optional-dependencies]
