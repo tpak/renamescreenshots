@@ -41,7 +41,14 @@ pip install -e ".[dev]"
 
 ### Web Interface (Recommended)
 
-The web interface provides a beautiful, user-friendly way to rename your screenshots.
+The web interface provides a beautiful, user-friendly way to rename your screenshots with real-time feedback.
+
+**Features:**
+- 📁 **Directory Picker** (Chrome/Edge) - Click to browse and select folders
+- ⚡ **Real-Time Progress** - See each file as it's being renamed with live updates
+- 📊 **Detailed Feedback** - View renamed files, skipped files, and any errors
+- 🎨 **Clean, Simple Design** - Beautiful interface that stays out of your way
+- 🔄 **Graceful Fallback** - Works in all modern browsers
 
 **Using the helper script:**
 ```bash
@@ -54,6 +61,11 @@ python -m src.web_app
 ```
 
 Then open your browser to `http://localhost:5000`
+
+**Browser Compatibility:**
+- Chrome/Edge: Full features including directory picker
+- Firefox/Safari: Text input for directory path (directory picker not supported)
+- All browsers support real-time progress via Server-Sent Events
 
 **For production use, set a persistent SECRET_KEY:**
 ```bash

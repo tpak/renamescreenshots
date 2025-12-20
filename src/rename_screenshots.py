@@ -239,3 +239,150 @@ def rename_screenshots(
                 logger.error(f"Error renaming {filename}: {e}")
 
     return total_files, renamed_files
+
+
+def rename_screenshots_streaming(
+    directory: str,
+    whitelist: Optional[List[str]] = None
+):
+    """
+    Generator version of rename_screenshots that yields progress events.
+
+    This function performs the same operations as rename_screenshots() but yields
+    progress events for each file operation, enabling real-time feedback in the UI.
+
+    Args:
+        directory (str): The directory containing the screenshot files.
+        whitelist (Optional[List[str]]): Optional list of allowed directories.
+
+    Yields:
+        dict: Progress events with keys:
+            - event: Event type ('start', 'rename', 'skip', 'error', 'complete')
+            - Additional keys depending on event type
+
+    Raises:
+        ValueError: If the directory path is invalid
+        FileNotFoundError: If the directory doesn't exist
+        NotADirectoryError: If the path is not a directory
+        PermissionError: If insufficient permissions or directory not in whitelist
+    """
+    # Load whitelist from environment if not provided and environment variable is set
+    if whitelist is None:
+        env_whitelist = os.environ.get('SCREENSHOT_RENAMER_WHITELIST')
+        if env_whitelist:
+            # Parse colon-separated paths from environment variable
+            whitelist = [p.strip() for p in env_whitelist.split(':') if p.strip()]
+            logger.info(f"Loaded whitelist from environment: {whitelist}")
+
+    # Validate the directory first - this will raise exceptions if invalid
+    validated_dir = validate_directory(directory, whitelist=whitelist)
+
+    # Yield start event
+    yield {
+        'event': 'start',
+        'directory': validated_dir
+    }
+
+    total_files = 0
+    renamed_files = 0
+    skipped_files = 0
+    error_count = 0
+
+    pattern = re.compile(
+        r"Screenshot (\d{4}-\d{2}-\d{2}) at (\d{1,2})\.(\d{2})\.(\d{2})\s*([APMapm]{2})\.(\w+)",
+        re.IGNORECASE,
+    )
+
+    for filename in os.listdir(validated_dir):
+        total_files += 1
+        match = pattern.match(filename)
+
+        if match:
+            try:
+                # Sanitize the original filename
+                sanitize_filename(filename)
+
+                date, hour, minute, second, period, extension = match.groups()
+                hour = int(hour)
+                period = period.upper()
+                if period == "PM" and hour != 12:
+                    hour += 12
+                elif period == "AM" and hour == 12:
+                    hour = 0
+                new_filename = (
+                    f"screenshot {date} at {hour:02}.{minute}.{second}.{extension}"
+                )
+
+                # Sanitize the new filename
+                sanitize_filename(new_filename)
+
+                # Build file paths
+                old_filepath = os.path.join(validated_dir, filename)
+                new_filepath = os.path.join(validated_dir, new_filename)
+
+                # Validate both paths are within the base directory
+                validate_file_path(old_filepath, validated_dir)
+                validate_file_path(new_filepath, validated_dir)
+
+                # Check if target file already exists to prevent accidental overwrites
+                if os.path.exists(new_filepath):
+                    logger.warning(f"Skipping rename: target file already exists: {new_filename}")
+                    skipped_files += 1
+                    yield {
+                        'event': 'skip',
+                        'filename': filename,
+                        'reason': 'target_exists',
+                        'message': f'Target file already exists: {new_filename}'
+                    }
+                    continue
+
+                # Perform the rename
+                logger.info(f"Renaming {filename} to {new_filename}")
+                os.rename(old_filepath, new_filepath)
+                logger.info(f"Successfully renamed to {new_filename}")
+                renamed_files += 1
+
+                # Yield success event
+                yield {
+                    'event': 'rename',
+                    'old_name': filename,
+                    'new_name': new_filename,
+                    'status': 'success'
+                }
+
+            except ValueError as e:
+                logger.error(f"Validation error for {filename}: {e}")
+                error_count += 1
+                yield {
+                    'event': 'error',
+                    'filename': filename,
+                    'error': str(e),
+                    'type': 'validation'
+                }
+            except OSError as e:
+                logger.error(f"Error renaming {filename}: {e}")
+                error_count += 1
+                yield {
+                    'event': 'error',
+                    'filename': filename,
+                    'error': str(e),
+                    'type': 'os'
+                }
+        else:
+            # File doesn't match the pattern
+            skipped_files += 1
+            yield {
+                'event': 'skip',
+                'filename': filename,
+                'reason': 'no_match',
+                'message': 'Does not match screenshot pattern'
+            }
+
+    # Yield complete event with summary
+    yield {
+        'event': 'complete',
+        'total_files': total_files,
+        'renamed_files': renamed_files,
+        'skipped_files': skipped_files,
+        'errors': error_count
+    }

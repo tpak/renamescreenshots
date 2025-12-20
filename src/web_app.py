@@ -6,12 +6,14 @@ Simple, beautiful, and functional.
 
 import os
 import secrets
+import json
 from pathlib import Path
 
-from flask import Flask, render_template, request, jsonify
-from flask_wtf.csrf import CSRFProtect
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from flask_wtf.csrf import CSRFProtect, validate_csrf
+from wtforms.validators import ValidationError
 
-from .rename_screenshots import rename_screenshots
+from .rename_screenshots import rename_screenshots, rename_screenshots_streaming
 
 app = Flask(__name__)
 
@@ -77,6 +79,71 @@ def rename():
             'success': False,
             'error': f'Unexpected error: {str(e)}'
         }), 500
+
+
+@app.route('/rename/stream')
+def rename_stream():
+    """
+    Stream rename progress using Server-Sent Events (SSE).
+
+    Query parameters:
+        directory: Directory to process
+        csrf_token: CSRF token for validation
+
+    Returns:
+        SSE stream of progress events
+    """
+    # Get parameters from query string (SSE uses GET request)
+    directory = request.args.get('directory', '')
+    csrf_token = request.args.get('csrf_token', '')
+
+    # Validate CSRF token (only if CSRF protection is enabled)
+    if app.config.get('WTF_CSRF_ENABLED', True):
+        if not csrf_token:
+            def error_stream():
+                yield f"data: {json.dumps({'event': 'error', 'error': 'Missing CSRF token'})}\n\n"
+            return Response(error_stream(), mimetype='text/event-stream'), 400
+
+        try:
+            validate_csrf(csrf_token)
+        except ValidationError:
+            def error_stream():
+                yield f"data: {json.dumps({'event': 'error', 'error': 'Invalid CSRF token'})}\n\n"
+            return Response(error_stream(), mimetype='text/event-stream'), 403
+
+    # Validate directory parameter
+    if not directory:
+        def error_stream():
+            yield f"data: {json.dumps({'event': 'error', 'error': 'No directory specified'})}\n\n"
+        return Response(error_stream(), mimetype='text/event-stream'), 400
+
+    def generate():
+        """Generator that formats progress events as SSE."""
+        try:
+            # Stream events from the generator
+            for event_data in rename_screenshots_streaming(directory):
+                # Format as SSE: "data: {json}\n\n"
+                yield f"data: {json.dumps(event_data)}\n\n"
+
+        except (ValueError, FileNotFoundError, NotADirectoryError) as e:
+            # User input errors
+            yield f"data: {json.dumps({'event': 'error', 'error': str(e), 'type': 'validation'})}\n\n"
+        except PermissionError as e:
+            # Permission errors
+            yield f"data: {json.dumps({'event': 'error', 'error': str(e), 'type': 'permission'})}\n\n"
+        except Exception as e:
+            # Unexpected errors
+            yield f"data: {json.dumps({'event': 'error', 'error': f'Unexpected error: {str(e)}', 'type': 'unexpected'})}\n\n"
+
+    # Return SSE response with proper headers
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',  # Disable nginx buffering
+        }
+    )
 
 
 def main():
