@@ -36,13 +36,38 @@ def main():
              "Only these directories and their subdirectories can be processed. "
              "Can also be set via SCREENSHOT_RENAMER_WHITELIST environment variable (colon-separated).",
     )
+    parser.add_argument(
+        "--prefix",
+        metavar="PREFIX",
+        help="Screenshot filename prefix to match (e.g., 'Screenshot', 'MyScreenshot'). "
+             "If not specified, auto-detects from macOS settings.",
+    )
+    parser.add_argument(
+        "--auto-detect",
+        action="store_true",
+        help="Auto-detect directory, prefix, and whitelist from macOS screenshot settings. "
+             "Overrides directory argument and --use-default-dir.",
+    )
     args = parser.parse_args()
 
-    directory = (
-        os.path.expanduser("~/Desktop/Screenshots")
-        if args.use_default_dir
-        else args.directory
-    )
+    # Auto-detect from macOS settings if requested
+    if args.auto_detect:
+        from .macos_settings import get_screenshot_settings
+        settings = get_screenshot_settings()
+        directory = settings.location
+        prefix = settings.prefix
+        # Auto-whitelist the detected location if no explicit whitelist provided
+        if args.whitelist is None:
+            args.whitelist = settings.get_whitelist_for_location()
+        logger.info(f"Auto-detected directory: {directory}")
+        logger.info(f"Auto-detected prefix: {prefix}")
+    else:
+        directory = (
+            os.path.expanduser("~/Desktop/Screenshots")
+            if args.use_default_dir
+            else args.directory
+        )
+        prefix = args.prefix
 
     # Configure logging with custom format
     logging.basicConfig(
@@ -53,7 +78,8 @@ def main():
     try:
         total_files, renamed_files = rename_screenshots(
             directory,
-            whitelist=args.whitelist
+            whitelist=args.whitelist,
+            prefix=prefix
         )
         logger.info(f"Total files scanned: {total_files}")
         logger.info(f"Total files renamed: {renamed_files}")
@@ -87,6 +113,18 @@ def watch_command():
              "Can also be set via SCREENSHOT_RENAMER_WHITELIST environment variable (colon-separated).",
     )
     parser.add_argument(
+        "--prefix",
+        metavar="PREFIX",
+        help="Screenshot filename prefix to match (e.g., 'Screenshot', 'MyScreenshot'). "
+             "If not specified, auto-detects from macOS settings.",
+    )
+    parser.add_argument(
+        "--auto-detect",
+        action="store_true",
+        help="Auto-detect directory, prefix, and whitelist from macOS screenshot settings. "
+             "Overrides directory argument.",
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable verbose logging",
@@ -100,9 +138,24 @@ def watch_command():
         format='%(levelname)s:%(name)s: %(message)s'
     )
 
+    # Auto-detect from macOS settings if requested
+    if args.auto_detect:
+        from .macos_settings import get_screenshot_settings
+        settings = get_screenshot_settings()
+        directory = settings.location
+        prefix = settings.prefix
+        # Auto-whitelist the detected location if no explicit whitelist provided
+        if args.whitelist is None:
+            args.whitelist = settings.get_whitelist_for_location()
+        logger.info(f"Auto-detected directory: {directory}")
+        logger.info(f"Auto-detected prefix: {prefix}")
+    else:
+        directory = args.directory
+        prefix = args.prefix
+
     try:
         from .watcher import watch_directory
-        watch_directory(args.directory, whitelist=args.whitelist)
+        watch_directory(directory, whitelist=args.whitelist, prefix=prefix)
         return 0
     except (ValueError, FileNotFoundError, NotADirectoryError, PermissionError) as e:
         logger.error(f"Error: {e}")
