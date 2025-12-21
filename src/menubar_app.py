@@ -160,7 +160,7 @@ class ScreenshotRenamerApp(rumps.App):
                 web_app.app.run(
                     debug=False,
                     host='127.0.0.1',
-                    port=5000,
+                    port=5001,
                     use_reloader=False  # Critical: disable reloader in thread
                 )
 
@@ -171,11 +171,11 @@ class ScreenshotRenamerApp(rumps.App):
             )
             self.flask_thread.start()
             self.flask_running = True
-            logger.info("Flask web server started on http://localhost:5000")
+            logger.info("Flask web server started on http://localhost:5001")
 
     def open_web_ui(self, _):
         """Open web interface in default browser."""
-        webbrowser.open('http://localhost:5000')
+        webbrowser.open('http://localhost:5001')
         logger.info("Opened web interface in browser")
 
     def toggle_watcher(self, sender):

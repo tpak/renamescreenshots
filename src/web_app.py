@@ -174,9 +174,9 @@ def main():
     """Run the Flask application."""
     print("\n🖼️  Screenshot Renamer Web Interface")
     print("=" * 50)
-    print("\nStarting server at http://localhost:5000")
+    print("\nStarting server at http://localhost:5001")
     print("Press Ctrl+C to stop\n")
-    app.run(debug=False, host='127.0.0.1', port=5000)
+    app.run(debug=False, host='127.0.0.1', port=5001)
 
 
 if __name__ == '__main__':

@@ -104,7 +104,7 @@ The web interface provides a beautiful, user-friendly way to rename your screens
 python -m src.web_app
 ```
 
-Then open your browser to `http://localhost:5000`
+Then open your browser to `http://localhost:5001`
 
 **Browser Compatibility:**
 - Chrome/Edge: Full features including directory picker
