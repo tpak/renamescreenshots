@@ -54,10 +54,11 @@ class ScreenshotRenamerApp(rumps.App):
         # Load macOS screenshot settings
         self.settings = get_screenshot_settings()
 
-        # Initialize app with title (shows in menu bar)
+        # Initialize app with emoji icon for menu bar
+        # Using emoji is safe (doesn't trigger rumps issue #222 which affects image files)
         super().__init__(
             name="Screenshot Renamer",
-            icon=None,  # Issue #222: Avoid custom icons to prevent freeze
+            icon="📷",  # Camera emoji - simple and recognizable
             quit_button=None  # We'll add our own quit button
         )
 
@@ -77,6 +78,9 @@ class ScreenshotRenamerApp(rumps.App):
         # Auto-start Flask in background
         self._start_flask()
 
+        # Auto-start watcher
+        self._auto_start_watcher()
+
     def _build_menu(self):
         """Build the menu bar menu structure."""
         # Menu items (keep references to avoid issue #216 memory leaks)
@@ -86,9 +90,10 @@ class ScreenshotRenamerApp(rumps.App):
         )
 
         self.watcher_item = rumps.MenuItem(
-            "Start Watcher",
+            "Stop Watcher",  # Default state is running
             callback=self.toggle_watcher
         )
+        self.watcher_item.state = 1  # Checkmark since watcher starts automatically
 
         self.quick_rename_item = rumps.MenuItem(
             "Quick Rename...",
@@ -172,6 +177,15 @@ class ScreenshotRenamerApp(rumps.App):
             self.flask_thread.start()
             self.flask_running = True
             logger.info("Flask web server started on http://localhost:5001")
+
+    def _auto_start_watcher(self):
+        """Auto-start watcher on app launch."""
+        try:
+            self._start_watcher()
+            logger.info("Auto-started watcher on launch")
+        except Exception as e:
+            logger.error(f"Failed to auto-start watcher: {e}")
+            # Don't show notification on startup failure - less intrusive
 
     def open_web_ui(self, _):
         """Open web interface in default browser."""
@@ -358,9 +372,9 @@ class ScreenshotRenamerApp(rumps.App):
 
 def main():
     """Run the menu bar application."""
-    # Configure logging with DEBUG level to see all watcher activity
+    # Configure logging
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(levelname)s:%(name)s: %(message)s'
     )
 

@@ -47,8 +47,8 @@ pip install -e ".[dev]"
 The menu bar app provides the easiest way to use Screenshot Renamer with one-click access from your macOS menu bar.
 
 **Features:**
-- 🚀 **One-click access** - Always available in your menu bar
-- 🔄 **Built-in watcher** - Start/stop automatic screenshot renaming from the menu
+- 🚀 **One-click access** - Always available in your menu bar with a 📷 icon
+- 🔄 **Auto-start watcher** - Automatically watches for new screenshots on launch
 - 🌐 **Web UI launcher** - Quick access to the web interface
 - ⚡ **Quick rename** - Instantly rename screenshots in your default location
 - 🔍 **Auto-detection** - Automatically detects macOS screenshot settings
@@ -72,7 +72,7 @@ screenshot-rename-menubar
 
 **Menu Options:**
 - **Open Web Interface** - Launch the web UI in your browser
-- **Start/Stop Watcher** - Toggle automatic screenshot renaming
+- **Stop/Start Watcher** - Toggle automatic screenshot renaming (starts automatically)
 - **Quick Rename** - Rename all screenshots in the default location now
 - View current location and prefix settings
 - Quit the app
