@@ -29,6 +29,7 @@ dependencies = [
     "flask>=3.0.0",
     "flask-wtf>=1.2.0",
     "watchdog>=3.0.0",
+    "rumps>=0.4.0; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,7 @@ dev = [
 screenshot-rename = "src.cli:main"
 screenshot-rename-web = "src.web_app:main"
 screenshot-rename-watch = "src.cli:watch_command"
+screenshot-rename-menubar = "src.menubar_app:main"
 
 [project.urls]
 Homepage = "https://github.com/tpak/renamescreenshots"
