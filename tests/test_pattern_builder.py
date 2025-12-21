@@ -45,7 +45,7 @@ class TestBuildScreenshotPattern:
         assert pattern.match("ScReEnShOt 2024-05-24 at 1.23.45 PM.png")
 
     def test_pattern_captures_groups(self):
-        """Pattern should capture date, time, and extension groups."""
+        """Pattern should capture date, time, sequence number, and extension groups."""
         pattern = build_screenshot_pattern("Screenshot")
         match = pattern.match("Screenshot 2024-05-24 at 1.23.45 PM.png")
 
@@ -57,7 +57,8 @@ class TestBuildScreenshotPattern:
         assert groups[2] == "23"           # Minute
         assert groups[3] == "45"           # Second
         assert groups[4] == "PM"           # AM/PM
-        assert groups[5] == "png"          # Extension
+        assert groups[5] is None           # Sequence number (None for single screenshot)
+        assert groups[6] == "png"          # Extension
 
     def test_pattern_matches_various_extensions(self):
         """Pattern should match various file extensions."""
@@ -147,3 +148,33 @@ class TestBuildScreenshotPattern:
 
         # Matches files with just space before date
         assert pattern.match(" 2024-05-24 at 1.23.45 PM.png")
+
+    def test_pattern_matches_sequential_screenshots(self):
+        """Should match screenshots with sequence numbers (rapid screenshots)."""
+        pattern = build_screenshot_pattern()
+
+        # Single screenshot (no sequence number)
+        assert pattern.match("Screenshot 2024-05-24 at 1.23.45 PM.png")
+
+        # Sequential screenshots (multiple in same second)
+        assert pattern.match("Screenshot 2024-05-24 at 1.23.45 PM 1.png")
+        assert pattern.match("Screenshot 2024-05-24 at 1.23.45 PM 2.png")
+        assert pattern.match("Screenshot 2024-05-24 at 1.23.45 PM 10.png")
+
+    def test_pattern_captures_sequence_number(self):
+        """Pattern should capture sequence number when present."""
+        pattern = build_screenshot_pattern()
+
+        # Without sequence number
+        match = pattern.match("Screenshot 2024-05-24 at 1.23.45 PM.png")
+        assert match is not None
+        groups = match.groups()
+        assert groups[5] is None  # sequence_num is None
+        assert groups[6] == "png"  # extension
+
+        # With sequence number
+        match = pattern.match("Screenshot 2024-05-24 at 1.23.45 PM 2.png")
+        assert match is not None
+        groups = match.groups()
+        assert groups[5] == "2"  # sequence_num
+        assert groups[6] == "png"  # extension

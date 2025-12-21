@@ -34,17 +34,23 @@ def build_screenshot_pattern(prefix: str = "Screenshot") -> re.Pattern:
         >>> pattern = build_screenshot_pattern("MyScreenshot")
         >>> pattern.match("MyScreenshot 2024-05-24 at 1.23.45 PM.png") is not None
         True
+        >>> # Handles rapid screenshots with sequential numbers
+        >>> pattern.match("Screenshot 2024-05-24 at 1.23.45 PM 1.png") is not None
+        True
     """
     # Escape prefix for use in regex (handles special characters like dots)
     escaped_prefix = re.escape(prefix)
 
     # Build pattern string
-    # Format: Prefix YYYY-MM-DD at H.MM.SS AM/PM.ext
+    # Format: Prefix YYYY-MM-DD at H.MM.SS AM/PM[ N].ext
+    # The [ N] part is optional (added when multiple screenshots taken in same second)
     pattern_str = (
         rf"{escaped_prefix} "
         r"(\d{4}-\d{2}-\d{2}) at "
         r"(\d{1,2})\.(\d{2})\.(\d{2})\s*"
-        r"([APMapm]{2})\."
+        r"([APMapm]{2})"
+        r"(?: (\d+))?"  # Optional sequence number (e.g., " 1", " 2")
+        r"\."
         r"(\w+)"
     )
 
@@ -244,7 +250,8 @@ def rename_screenshots(
                 # Sanitize the original filename
                 sanitize_filename(filename)
 
-                date, hour, minute, second, period, extension = match.groups()
+                # Extract groups (sequence_num can be None if not present)
+                date, hour, minute, second, period, sequence_num, extension = match.groups()
                 hour = int(hour)
                 period = period.upper()
                 if period == "PM" and hour != 12:
@@ -254,9 +261,16 @@ def rename_screenshots(
 
                 # Preserve the custom prefix (lowercase)
                 prefix_lower = prefix.lower()
-                new_filename = (
-                    f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
-                )
+
+                # Build new filename, preserving sequence number if present
+                if sequence_num:
+                    new_filename = (
+                        f"{prefix_lower} {date} at {hour:02}.{minute}.{second} {sequence_num}.{extension}"
+                    )
+                else:
+                    new_filename = (
+                        f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
+                    )
 
                 # Sanitize the new filename
                 sanitize_filename(new_filename)
@@ -358,7 +372,8 @@ def rename_screenshots_streaming(
                 # Sanitize the original filename
                 sanitize_filename(filename)
 
-                date, hour, minute, second, period, extension = match.groups()
+                # Extract groups (sequence_num can be None if not present)
+                date, hour, minute, second, period, sequence_num, extension = match.groups()
                 hour = int(hour)
                 period = period.upper()
                 if period == "PM" and hour != 12:
@@ -368,9 +383,16 @@ def rename_screenshots_streaming(
 
                 # Preserve the custom prefix (lowercase)
                 prefix_lower = prefix.lower()
-                new_filename = (
-                    f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
-                )
+
+                # Build new filename, preserving sequence number if present
+                if sequence_num:
+                    new_filename = (
+                        f"{prefix_lower} {date} at {hour:02}.{minute}.{second} {sequence_num}.{extension}"
+                    )
+                else:
+                    new_filename = (
+                        f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
+                    )
 
                 # Sanitize the new filename
                 sanitize_filename(new_filename)
