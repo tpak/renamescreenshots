@@ -14,6 +14,7 @@ macOS names screenshots like `Screenshot 2024-05-24 at 1.23.45 PM.png`, which do
 - 🎯 Simple, focused functionality - does one thing well
 - 💻 Command-line interface for automation and scripting
 - 🌐 Beautiful web interface for visual interaction
+- 👁️ Background watcher for automatic real-time screenshot renaming
 - 🔒 Comprehensive security features (CSRF protection, path validation, sanitization)
 - ⚡ Fast and efficient - no heavy dependencies
 - ✅ Fully tested with comprehensive test suite
@@ -103,6 +104,79 @@ export SCREENSHOT_RENAMER_WHITELIST="~/Desktop/Screenshots:~/Documents/Screensho
 python -m src.cli
 ```
 
+### Background Watcher
+
+Automatically watch a directory and rename screenshots as they appear in real-time.
+
+**Watch the default screenshots directory:**
+```bash
+screenshot-rename-watch
+```
+
+**Watch a specific directory:**
+```bash
+screenshot-rename-watch /path/to/screenshots
+```
+
+**With directory whitelist for security:**
+```bash
+screenshot-rename-watch --whitelist ~/Desktop/Screenshots
+```
+
+**With verbose logging:**
+```bash
+screenshot-rename-watch -v
+```
+
+The watcher runs in the foreground and can be stopped with `Ctrl+C`.
+
+**Features:**
+- ⚡ Instant renaming as screenshots are created
+- 🔒 Same security validations as CLI (whitelist support, path validation)
+- 📊 Real-time logging of detected and renamed files
+- 🎯 Non-recursive (watches only the specified directory, not subdirectories)
+
+**Use Cases:**
+- Set it and forget it - automatically rename screenshots as you take them
+- Integrate with automation workflows
+- Run as a background service (see below)
+
+**Running as a macOS Launch Agent (optional):**
+
+To automatically start the watcher on login, create a launch agent plist file:
+
+```bash
+# Create the launch agent file
+cat > ~/Library/LaunchAgents/com.screenshot-renamer.watcher.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.screenshot-renamer.watcher</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/screenshot-rename-watch</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/screenshot-renamer.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/screenshot-renamer.err</string>
+</dict>
+</plist>
+EOF
+
+# Load the launch agent
+launchctl load ~/Library/LaunchAgents/com.screenshot-renamer.watcher.plist
+
+# To stop and unload:
+# launchctl unload ~/Library/LaunchAgents/com.screenshot-renamer.watcher.plist
+```
+
 ### As an Installed Command
 
 After installation, you can also use the installed command:
@@ -132,6 +206,7 @@ renamescreenshots/
 │   ├── __init__.py
 │   ├── cli.py                  # Command-line interface
 │   ├── rename_screenshots.py   # Core renaming logic
+│   ├── watcher.py             # Background file watcher
 │   ├── web_app.py             # Flask web application
 │   ├── templates/
 │   │   └── index.html         # Web interface template
@@ -140,6 +215,7 @@ renamescreenshots/
 │   ├── test_cli.py
 │   ├── test_rename_screenshots.py
 │   ├── test_security.py
+│   ├── test_watcher.py
 │   └── test_web_app.py
 ├── pyproject.toml             # Modern Python packaging
 ├── requirements.txt

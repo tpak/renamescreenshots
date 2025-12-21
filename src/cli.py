@@ -64,5 +64,52 @@ def main():
     return 0
 
 
+def watch_command():
+    """
+    Entry point for the watch command.
+    Watches a directory and automatically renames screenshots as they appear.
+    """
+    parser = argparse.ArgumentParser(
+        description="Watch directory and auto-rename screenshots."
+    )
+    parser.add_argument(
+        "directory",
+        nargs="?",
+        default=os.path.expanduser("~/Desktop/Screenshots"),
+        help="Directory to watch (default: ~/Desktop/Screenshots)",
+    )
+    parser.add_argument(
+        "--whitelist",
+        nargs="+",
+        metavar="DIR",
+        help="Optional whitelist of allowed directories (space-separated). "
+             "Only these directories and their subdirectories can be processed. "
+             "Can also be set via SCREENSHOT_RENAMER_WHITELIST environment variable (colon-separated).",
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Enable verbose logging",
+    )
+    args = parser.parse_args()
+
+    # Configure logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format='%(levelname)s:%(name)s: %(message)s'
+    )
+
+    try:
+        from .watcher import watch_directory
+        watch_directory(args.directory, whitelist=args.whitelist)
+        return 0
+    except (ValueError, FileNotFoundError, NotADirectoryError, PermissionError) as e:
+        logger.error(f"Error: {e}")
+        return 1
+    except KeyboardInterrupt:
+        return 0
+
+
 if __name__ == "__main__":
     main()
