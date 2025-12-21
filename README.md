@@ -8,6 +8,7 @@ Automatically rename macOS screenshots to a sortable 24-hour format.
 **Before:** `Screenshot 2024-05-24 at 1.23.45 PM.png`
 **After:** `screenshot 2024-05-24 at 13.23.45.png`
 
+
 ## Why?
 
 macOS screenshot names don't sort chronologically in Finder due to 12-hour time format. This tool fixes that, making screenshots easier to find and organize.
