@@ -54,11 +54,11 @@ class ScreenshotRenamerApp(rumps.App):
         # Load macOS screenshot settings
         self.settings = get_screenshot_settings()
 
-        # Initialize app with emoji icon for menu bar
-        # Using emoji is safe (doesn't trigger rumps issue #222 which affects image files)
+        # Initialize app with title (shows in menu bar)
+        # Note: We use the title instead of an icon to avoid rumps issue #222
+        # which can cause freezing with custom icon files
         super().__init__(
-            name="Screenshot Renamer",
-            icon="📷",  # Camera emoji - simple and recognizable
+            name="📷",  # Camera emoji as title instead of icon
             quit_button=None  # We'll add our own quit button
         )
 
