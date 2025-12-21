@@ -358,9 +358,9 @@ class ScreenshotRenamerApp(rumps.App):
 
 def main():
     """Run the menu bar application."""
-    # Configure logging
+    # Configure logging with DEBUG level to see all watcher activity
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(levelname)s:%(name)s: %(message)s'
     )
 

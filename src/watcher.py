@@ -52,11 +52,15 @@ class ScreenshotHandler(FileSystemEventHandler):
             event: FileSystemEvent containing information about the created file
         """
         if event.is_directory:
+            logger.debug(f"Ignoring directory: {event.src_path}")
             return
 
         # Get filename from path
         filepath = Path(event.src_path)
         filename = filepath.name
+
+        # Log all file creations for debugging
+        logger.debug(f"File created: {filename}")
 
         # Check if it matches screenshot pattern
         if self.pattern.match(filename):
@@ -72,9 +76,13 @@ class ScreenshotHandler(FileSystemEventHandler):
                     prefix=self.prefix
                 )
                 if renamed > 0:
-                    logger.info(f"Auto-renamed screenshot")
+                    logger.info(f"Auto-renamed screenshot: {filename}")
+                else:
+                    logger.warning(f"Screenshot detected but not renamed: {filename} (total={total}, renamed={renamed})")
             except Exception as e:
                 logger.error(f"Error processing {filename}: {e}")
+        else:
+            logger.debug(f"File does not match screenshot pattern: {filename}")
 
 
 def watch_directory(directory: str, whitelist: Optional[List[str]] = None, prefix: Optional[str] = None):
