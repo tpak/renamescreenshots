@@ -3,7 +3,7 @@
 [![CodeQL Advanced](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml)
 [![Python application](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml/badge.svg)](https://github.com/tpak/renamescreenshots/actions/workflows/python-app.yml)
 
-A clean, simple macOS utility for renaming screenshot files to a sortable format. Available as both a command-line tool and a beautiful web interface.
+A clean, simple macOS utility for renaming screenshot files to a sortable format. Available as a menu bar app, web interface, command-line tool, and background watcher.
 
 ## Why?
 
@@ -12,9 +12,11 @@ macOS names screenshots like `Screenshot 2024-05-24 at 1.23.45 PM.png`, which do
 ## Features
 
 - 🎯 Simple, focused functionality - does one thing well
-- 💻 Command-line interface for automation and scripting
+- 📱 **macOS Menu Bar App** - Primary interface with one-click access
 - 🌐 Beautiful web interface for visual interaction
+- 💻 Command-line interface for automation and scripting
 - 👁️ Background watcher for automatic real-time screenshot renaming
+- 🔍 **Auto-detection** - Automatically detects macOS screenshot settings (location & prefix)
 - 🔒 Comprehensive security features (CSRF protection, path validation, sanitization)
 - ⚡ Fast and efficient - no heavy dependencies
 - ✅ Fully tested with comprehensive test suite
@@ -40,7 +42,48 @@ pip install -e ".[dev]"
 
 ## Usage
 
-### Web Interface (Recommended)
+### Menu Bar App (Primary Interface)
+
+The menu bar app provides the easiest way to use Screenshot Renamer with one-click access from your macOS menu bar.
+
+**Features:**
+- 🚀 **One-click access** - Always available in your menu bar
+- 🔄 **Built-in watcher** - Start/stop automatic screenshot renaming from the menu
+- 🌐 **Web UI launcher** - Quick access to the web interface
+- ⚡ **Quick rename** - Instantly rename screenshots in your default location
+- 🔍 **Auto-detection** - Automatically detects macOS screenshot settings
+- 📊 **Status display** - Shows current location and prefix settings
+
+**Installation:**
+```bash
+# Install the package
+pip install -e .
+
+# Run the install script (sets up auto-start on login)
+./install_launch_agent.sh
+```
+
+The menu bar app will appear in your menu bar and start automatically on login.
+
+**Manual launch:**
+```bash
+screenshot-rename-menubar
+```
+
+**Menu Options:**
+- **Open Web Interface** - Launch the web UI in your browser
+- **Start/Stop Watcher** - Toggle automatic screenshot renaming
+- **Quick Rename** - Rename all screenshots in the default location now
+- View current location and prefix settings
+- Quit the app
+
+**Technical Notes:**
+- Uses rumps (Ridiculously Uncomplicated macOS Python Statusbar apps)
+- Includes workarounds for known rumps issues on macOS 15+
+- Flask web server runs in background thread
+- Watcher uses watchdog for efficient file monitoring
+
+### Web Interface
 
 The web interface provides a beautiful, user-friendly way to rename your screenshots with real-time feedback.
 
@@ -78,35 +121,57 @@ export SCREENSHOT_RENAMER_SECRET_KEY="your-secret-key-here"
 
 Perfect for automation, scripts, or terminal lovers.
 
+**Auto-detect macOS screenshot settings (recommended):**
+```bash
+screenshot-rename --auto-detect
+```
+
+This will automatically:
+- Detect the screenshot save location from macOS settings
+- Detect the custom screenshot prefix (if any)
+- Auto-whitelist the detected location
+
 **Rename screenshots in a specific directory:**
 ```bash
-python -m src.cli /path/to/screenshots
+screenshot-rename /path/to/screenshots
+```
+
+**With custom screenshot prefix:**
+```bash
+screenshot-rename ~/Desktop/Screenshots --prefix "MyScreenshot"
 ```
 
 **Use the default macOS screenshots directory:**
 ```bash
-python -m src.cli --use-default-dir
+screenshot-rename --use-default-dir
 ```
 
 **Or use the current directory:**
 ```bash
-python -m src.cli
+screenshot-rename
 ```
 
 **With directory whitelist for additional security:**
 ```bash
-python -m src.cli --whitelist ~/Desktop/Screenshots ~/Documents/Screenshots
+screenshot-rename --whitelist ~/Desktop/Screenshots ~/Documents/Screenshots
 ```
 
 You can also set a whitelist via environment variable:
 ```bash
 export SCREENSHOT_RENAMER_WHITELIST="~/Desktop/Screenshots:~/Documents/Screenshots"
-python -m src.cli
+screenshot-rename
 ```
 
 ### Background Watcher
 
 Automatically watch a directory and rename screenshots as they appear in real-time.
+
+**Auto-detect macOS screenshot settings (recommended):**
+```bash
+screenshot-rename-watch --auto-detect
+```
+
+This will automatically detect the screenshot location and prefix from macOS settings.
 
 **Watch the default screenshots directory:**
 ```bash
@@ -116,6 +181,11 @@ screenshot-rename-watch
 **Watch a specific directory:**
 ```bash
 screenshot-rename-watch /path/to/screenshots
+```
+
+**With custom prefix:**
+```bash
+screenshot-rename-watch --prefix "MyScreenshot"
 ```
 
 **With directory whitelist for security:**
@@ -316,6 +386,30 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 - Maintain test coverage
 - Follow existing code style
 - Update documentation as needed
+
+## Acknowledgments
+
+This project uses several excellent open-source libraries:
+
+### rumps (Ridiculously Uncomplicated macOS Python Statusbar apps)
+- **License:** BSD-3-Clause
+- **Copyright:** Jared Suttles
+- **Source:** https://github.com/jaredks/rumps
+- **Usage:** Powers the macOS menu bar application interface
+
+rumps makes it incredibly easy to create native macOS menu bar applications in Python. Our implementation includes workarounds for several known issues on macOS 15+ to ensure reliable operation:
+- Issues #221, #225: Window and dialog visibility fixes
+- Issue #222: Avoided icon-related freezing
+- Issue #216: Memory leak prevention with in-place menu updates
+- Issue #220: Custom menu item enable/disable via PyObjC
+- Issue #219: Python 3.12+ compatibility (requires rumps >= 0.4.0)
+
+### Other Dependencies
+- **Flask** (BSD-3-Clause) - Web interface framework
+- **Flask-WTF** (BSD-3-Clause) - CSRF protection for web interface
+- **watchdog** (Apache-2.0) - File system monitoring for background watcher
+
+All dependencies are compatible with our MIT license.
 
 ## License
 
