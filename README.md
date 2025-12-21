@@ -224,18 +224,88 @@ renamescreenshots/
 
 ## Security Features
 
-This utility includes comprehensive security protections:
+This utility includes comprehensive security protections to ensure safe file operations:
 
-- **Path Validation**: All directory paths are validated and normalized to prevent path traversal attacks
-- **Directory Whitelist**: Optional whitelist to restrict operations to specific directories only
-- **File Sanitization**: Filenames are sanitized to prevent null bytes, control characters, and path traversal attempts
-- **CSRF Protection**: Web interface includes CSRF token validation to prevent cross-site request forgery
-- **Secure Configuration**: Support for environment variables to manage secrets securely
+### Path Validation
+All directory paths are validated and normalized to prevent path traversal attacks. The tool:
+- Resolves symlinks to real paths
+- Converts relative paths to absolute paths
+- Verifies the directory exists and is actually a directory
+- Checks for read/write permissions before operating
+
+### Directory Whitelist (Optional Security Layer)
+Restricts which directories the tool can operate on. When enabled, the tool will **ONLY** process files in:
+- Directories explicitly listed in the whitelist, OR
+- Subdirectories of whitelisted directories
+
+**Example:**
+```bash
+# Only allow ~/Desktop/Screenshots and its subdirectories
+screenshot-rename ~/Desktop/Screenshots/2024 --whitelist ~/Desktop/Screenshots
+# ✅ ALLOWED (subdirectory of whitelisted path)
+
+screenshot-rename ~/Documents --whitelist ~/Desktop/Screenshots
+# ❌ BLOCKED - PermissionError: "Directory not allowed"
+```
+
+**Use cases:**
+- Multi-user systems: Prevent operations on other users' files
+- Automated scripts: Ensure scripts can't accidentally process wrong directories
+- Web interface: Prevent web users from renaming files in sensitive locations
+- Defense in depth: Extra safety layer on top of path validation
+
+**Note:** If no whitelist is provided, the tool can operate on any directory the user has permissions for.
+
+### File Sanitization
+All filenames are sanitized before renaming to prevent:
+- Null bytes in filenames
+- Control characters
+- Path separators (/, \)
+- Path traversal attempts (../, ..\)
+
+### CSRF Protection (Web Interface)
+The web interface uses Flask-WTF to protect against Cross-Site Request Forgery attacks:
+- All form submissions require a valid CSRF token
+- Tokens are cryptographically signed using the SECRET_KEY
+- SSE endpoints validate CSRF tokens via query parameters
 
 ### Environment Variables
 
-- `SCREENSHOT_RENAMER_WHITELIST`: Colon-separated list of allowed directories (optional)
-- `SCREENSHOT_RENAMER_SECRET_KEY`: Secret key for Flask sessions (recommended for web interface)
+#### `SCREENSHOT_RENAMER_WHITELIST`
+**Purpose:** Define allowed directories for file operations (optional security restriction)
+
+**Format:** Colon-separated list of directory paths
+```bash
+export SCREENSHOT_RENAMER_WHITELIST="~/Desktop/Screenshots:~/Documents/Screenshots"
+```
+
+**Behavior:**
+- When set: Tool can ONLY operate in listed directories and their subdirectories
+- When not set: Tool can operate in any directory with proper permissions
+- Both CLI and web interface respect this setting
+
+#### `SCREENSHOT_RENAMER_SECRET_KEY`
+**Purpose:** Cryptographic key for signing CSRF tokens and session cookies (web interface only)
+
+**Format:** Random string (minimum 32 characters recommended)
+```bash
+export SCREENSHOT_RENAMER_SECRET_KEY="your-secure-random-key-here"
+```
+
+**Behavior:**
+- **Not set (development):** Auto-generates a random key on each server start
+  - ⚠️ CSRF tokens become invalid when server restarts
+  - Shows warning message in console
+- **Set (production):** Uses your provided key consistently
+  - ✅ CSRF tokens remain valid across server restarts
+  - No warning messages
+
+**Generate a secure key:**
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+**Security note:** Keep this key secret! Anyone with access to it can forge valid CSRF tokens.
 
 ## Contributing
 
