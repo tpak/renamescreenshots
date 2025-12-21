@@ -1,3 +1,4 @@
 flask>=3.0.0
 flask-wtf>=1.2.0
+watchdog>=3.0.0
 pytest>=7.0.0

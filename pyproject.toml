@@ -28,6 +28,7 @@ classifiers = [
 dependencies = [
     "flask>=3.0.0",
     "flask-wtf>=1.2.0",
+    "watchdog>=3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -38,6 +39,7 @@ dev = [
 [project.scripts]
 screenshot-rename = "src.cli:main"
 screenshot-rename-web = "src.web_app:main"
+screenshot-rename-watch = "src.cli:watch_command"
 
 [project.urls]
 Homepage = "https://github.com/tpak/renamescreenshots"
