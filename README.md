@@ -255,6 +255,35 @@ screenshot-rename /path/to/screenshots
 screenshot-rename --use-default-dir
 ```
 
+## Uninstallation
+
+### Remove Launch Agent (Auto-Start)
+
+To stop the menu bar app from starting automatically on login:
+
+```bash
+./uninstall_launch_agent.sh
+```
+
+Or manually:
+```bash
+launchctl unload ~/Library/LaunchAgents/com.screenshot-renamer.menubar.plist
+rm ~/Library/LaunchAgents/com.screenshot-renamer.menubar.plist
+```
+
+### Remove Python Package
+
+To completely remove the tool:
+```bash
+pip uninstall screenshot-renamer
+```
+
+This will remove all commands:
+- `screenshot-rename`
+- `screenshot-rename-web`
+- `screenshot-rename-watch`
+- `screenshot-rename-menubar`
+
 ## Development
 
 ### Running Tests
