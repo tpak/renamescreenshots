@@ -182,53 +182,74 @@ class ScreenshotRenamerApp(rumps.App):
         """Start or stop the background watcher."""
         with self.watcher_lock:
             if self.watcher_running:
-                self._stop_watcher()
-                # Update menu item
-                sender.title = "Start Watcher"
-                sender.state = 0  # Remove checkmark
+                try:
+                    self._stop_watcher()
+                    # Update menu item
+                    sender.title = "Start Watcher"
+                    sender.state = 0  # Remove checkmark
 
-                # Show notification (use safe wrapper for issue #213)
-                self._show_notification_safe(
-                    "Watcher Stopped",
-                    "Screenshot watcher has been stopped"
-                )
+                    # Show notification (use safe wrapper for issue #213)
+                    self._show_notification_safe(
+                        "Watcher Stopped",
+                        "Screenshot watcher has been stopped"
+                    )
+                except Exception as e:
+                    logger.error(f"Error stopping watcher: {e}")
+                    self._show_notification_safe(
+                        "Error",
+                        f"Failed to stop watcher: {e}"
+                    )
             else:
-                self._start_watcher()
-                # Update menu item
-                sender.title = "Stop Watcher"
-                sender.state = 1  # Add checkmark
+                try:
+                    self._start_watcher()
+                    # Update menu item only if start succeeded
+                    sender.title = "Stop Watcher"
+                    sender.state = 1  # Add checkmark
 
-                # Show notification
-                self._show_notification_safe(
-                    "Watcher Started",
-                    f"Watching: {self._shorten_path(self.settings.location)}"
-                )
+                    # Show notification
+                    self._show_notification_safe(
+                        "Watcher Started",
+                        f"Watching: {self._shorten_path(self.settings.location)}"
+                    )
+                except Exception as e:
+                    logger.error(f"Error starting watcher: {e}")
+                    self._show_notification_safe(
+                        "Error",
+                        f"Failed to start watcher: {e}"
+                    )
 
     def _start_watcher(self):
         """Start the background file watcher."""
         if self.watcher_running:
+            logger.warning("Watcher already running")
             return
 
-        # Create event handler and observer
-        event_handler = ScreenshotHandler(
-            self.settings.location,
-            whitelist=self.settings.get_whitelist_for_location(),
-            prefix=self.settings.prefix
-        )
+        try:
+            # Create event handler and observer
+            event_handler = ScreenshotHandler(
+                self.settings.location,
+                whitelist=self.settings.get_whitelist_for_location(),
+                prefix=self.settings.prefix
+            )
 
-        self.watcher_observer = Observer()
-        self.watcher_observer.schedule(
-            event_handler,
-            self.settings.location,
-            recursive=False
-        )
+            self.watcher_observer = Observer()
+            self.watcher_observer.schedule(
+                event_handler,
+                self.settings.location,
+                recursive=False
+            )
 
-        # Start observer
-        self.watcher_observer.start()
-        self.watcher_running = True
+            # Start observer
+            self.watcher_observer.start()
+            self.watcher_running = True
 
-        logger.info(f"Watcher started on: {self.settings.location}")
-        logger.info(f"Watching for prefix: {self.settings.prefix}")
+            logger.info(f"Watcher started on: {self.settings.location}")
+            logger.info(f"Watching for prefix: {self.settings.prefix}")
+
+        except Exception as e:
+            logger.error(f"Failed to start watcher: {e}")
+            self.watcher_running = False
+            raise
 
     def _stop_watcher(self):
         """Stop the background file watcher."""
