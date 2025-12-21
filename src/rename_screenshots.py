@@ -15,6 +15,42 @@ logger = logging.getLogger('screenshot_renamer')
 DEFAULT_WHITELIST = None
 
 
+def build_screenshot_pattern(prefix: str = "Screenshot") -> re.Pattern:
+    """
+    Build a regex pattern for matching screenshot filenames with custom prefix.
+
+    Args:
+        prefix: The screenshot prefix to match (e.g., "Screenshot", "MyScreenshot").
+                Special regex characters will be escaped automatically.
+
+    Returns:
+        re.Pattern: Compiled regex pattern for matching screenshot filenames
+
+    Example:
+        >>> pattern = build_screenshot_pattern("Screenshot")
+        >>> match = pattern.match("Screenshot 2024-05-24 at 1.23.45 PM.png")
+        >>> match is not None
+        True
+        >>> pattern = build_screenshot_pattern("MyScreenshot")
+        >>> pattern.match("MyScreenshot 2024-05-24 at 1.23.45 PM.png") is not None
+        True
+    """
+    # Escape prefix for use in regex (handles special characters like dots)
+    escaped_prefix = re.escape(prefix)
+
+    # Build pattern string
+    # Format: Prefix YYYY-MM-DD at H.MM.SS AM/PM.ext
+    pattern_str = (
+        rf"{escaped_prefix} "
+        r"(\d{4}-\d{2}-\d{2}) at "
+        r"(\d{1,2})\.(\d{2})\.(\d{2})\s*"
+        r"([APMapm]{2})\."
+        r"(\w+)"
+    )
+
+    return re.compile(pattern_str, re.IGNORECASE)
+
+
 def sanitize_filename(filename: str) -> str:
     """
     Sanitize a filename to prevent path traversal and other security issues.
@@ -153,7 +189,8 @@ def validate_file_path(filepath: str, base_directory: str) -> str:
 
 def rename_screenshots(
     directory: str,
-    whitelist: Optional[List[str]] = None
+    whitelist: Optional[List[str]] = None,
+    prefix: Optional[str] = None
 ) -> Tuple[int, int]:
     """
     Rename screenshot files in the specified directory to a consistent format.
@@ -163,6 +200,8 @@ def rename_screenshots(
         whitelist (Optional[List[str]]): Optional list of allowed directories.
                                         If provided, only these directories (and subdirectories)
                                         can be processed. If None, all directories are allowed.
+        prefix (Optional[str]): Screenshot filename prefix to match (e.g., "Screenshot", "MyScreenshot").
+                               If None, auto-detects from macOS settings.
 
     Returns:
         Tuple[int, int]: (total matching files, renamed files)
@@ -181,16 +220,21 @@ def rename_screenshots(
             whitelist = [p.strip() for p in env_whitelist.split(':') if p.strip()]
             logger.info(f"Loaded whitelist from environment: {whitelist}")
 
+    # Auto-detect prefix from macOS settings if not provided
+    if prefix is None:
+        from .macos_settings import get_screenshot_settings
+        settings = get_screenshot_settings()
+        prefix = settings.prefix
+        logger.info(f"Auto-detected screenshot prefix: {prefix}")
+
     # Validate the directory first
     validated_dir = validate_directory(directory, whitelist=whitelist)
 
     total_files = 0
     renamed_files = 0
 
-    pattern = re.compile(
-        r"Screenshot (\d{4}-\d{2}-\d{2}) at (\d{1,2})\.(\d{2})\.(\d{2})\s*([APMapm]{2})\.(\w+)",
-        re.IGNORECASE,
-    )
+    # Build pattern for the specified prefix
+    pattern = build_screenshot_pattern(prefix)
 
     for filename in os.listdir(validated_dir):
         total_files += 1  # Count every file in the directory
@@ -207,8 +251,11 @@ def rename_screenshots(
                     hour += 12
                 elif period == "AM" and hour == 12:
                     hour = 0
+
+                # Preserve the custom prefix (lowercase)
+                prefix_lower = prefix.lower()
                 new_filename = (
-                    f"screenshot {date} at {hour:02}.{minute}.{second}.{extension}"
+                    f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
                 )
 
                 # Sanitize the new filename
@@ -243,7 +290,8 @@ def rename_screenshots(
 
 def rename_screenshots_streaming(
     directory: str,
-    whitelist: Optional[List[str]] = None
+    whitelist: Optional[List[str]] = None,
+    prefix: Optional[str] = None
 ):
     """
     Generator version of rename_screenshots that yields progress events.
@@ -254,6 +302,8 @@ def rename_screenshots_streaming(
     Args:
         directory (str): The directory containing the screenshot files.
         whitelist (Optional[List[str]]): Optional list of allowed directories.
+        prefix (Optional[str]): Screenshot filename prefix to match (e.g., "Screenshot", "MyScreenshot").
+                               If None, auto-detects from macOS settings.
 
     Yields:
         dict: Progress events with keys:
@@ -274,13 +324,21 @@ def rename_screenshots_streaming(
             whitelist = [p.strip() for p in env_whitelist.split(':') if p.strip()]
             logger.info(f"Loaded whitelist from environment: {whitelist}")
 
+    # Auto-detect prefix from macOS settings if not provided
+    if prefix is None:
+        from .macos_settings import get_screenshot_settings
+        settings = get_screenshot_settings()
+        prefix = settings.prefix
+        logger.info(f"Auto-detected screenshot prefix: {prefix}")
+
     # Validate the directory first - this will raise exceptions if invalid
     validated_dir = validate_directory(directory, whitelist=whitelist)
 
-    # Yield start event
+    # Yield start event with detected prefix
     yield {
         'event': 'start',
-        'directory': validated_dir
+        'directory': validated_dir,
+        'prefix': prefix
     }
 
     total_files = 0
@@ -288,10 +346,8 @@ def rename_screenshots_streaming(
     skipped_files = 0
     error_count = 0
 
-    pattern = re.compile(
-        r"Screenshot (\d{4}-\d{2}-\d{2}) at (\d{1,2})\.(\d{2})\.(\d{2})\s*([APMapm]{2})\.(\w+)",
-        re.IGNORECASE,
-    )
+    # Build pattern for the specified prefix
+    pattern = build_screenshot_pattern(prefix)
 
     for filename in os.listdir(validated_dir):
         total_files += 1
@@ -309,8 +365,11 @@ def rename_screenshots_streaming(
                     hour += 12
                 elif period == "AM" and hour == 12:
                     hour = 0
+
+                # Preserve the custom prefix (lowercase)
+                prefix_lower = prefix.lower()
                 new_filename = (
-                    f"screenshot {date} at {hour:02}.{minute}.{second}.{extension}"
+                    f"{prefix_lower} {date} at {hour:02}.{minute}.{second}.{extension}"
                 )
 
                 # Sanitize the new filename
