@@ -4,7 +4,10 @@
       "Bash(pip install:*)",
       "Bash(pytest:*)",
       "Bash(python:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
