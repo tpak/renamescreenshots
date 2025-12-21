@@ -44,23 +44,14 @@ class ScreenshotHandler(FileSystemEventHandler):
         self.prefix = prefix
         self.pattern = build_screenshot_pattern(prefix)
 
-    def on_created(self, event):
+    def _process_screenshot(self, filepath: Path):
         """
-        Handle file creation events.
+        Process a potential screenshot file.
 
         Args:
-            event: FileSystemEvent containing information about the created file
+            filepath: Path to the file to process
         """
-        if event.is_directory:
-            logger.debug(f"Ignoring directory: {event.src_path}")
-            return
-
-        # Get filename from path
-        filepath = Path(event.src_path)
         filename = filepath.name
-
-        # Log all file creations for debugging
-        logger.debug(f"File created: {filename}")
 
         # Check if it matches screenshot pattern
         if self.pattern.match(filename):
@@ -83,6 +74,52 @@ class ScreenshotHandler(FileSystemEventHandler):
                 logger.error(f"Error processing {filename}: {e}")
         else:
             logger.debug(f"File does not match screenshot pattern: {filename}")
+
+    def on_created(self, event):
+        """
+        Handle file creation events.
+
+        Args:
+            event: FileSystemEvent containing information about the created file
+        """
+        if event.is_directory:
+            logger.debug(f"Ignoring directory: {event.src_path}")
+            return
+
+        # Get filename from path
+        filepath = Path(event.src_path)
+        filename = filepath.name
+
+        # Log all file creations for debugging
+        logger.debug(f"File created: {filename}")
+
+        # Process the file
+        self._process_screenshot(filepath)
+
+    def on_moved(self, event):
+        """
+        Handle file move/rename events.
+
+        macOS creates screenshots as hidden files (.Screenshot...) first,
+        then renames them to the final name (Screenshot...).
+        We need to catch this rename event.
+
+        Args:
+            event: FileSystemEvent containing information about the moved file
+        """
+        if event.is_directory:
+            logger.debug(f"Ignoring directory move: {event.src_path}")
+            return
+
+        # Get destination filename
+        dest_filepath = Path(event.dest_path)
+        dest_filename = dest_filepath.name
+
+        # Log the move for debugging
+        logger.debug(f"File moved/renamed: {Path(event.src_path).name} -> {dest_filename}")
+
+        # Process the destination file (the final screenshot name)
+        self._process_screenshot(dest_filepath)
 
 
 def watch_directory(directory: str, whitelist: Optional[List[str]] = None, prefix: Optional[str] = None):
