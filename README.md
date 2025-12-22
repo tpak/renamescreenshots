@@ -50,6 +50,34 @@ screenshot-rename-menubar
 
 The 📷 icon will appear in your menu bar. Take a screenshot and it will be automatically renamed!
 
+## What Gets Installed
+
+Running `pip install -e .` installs **4 command-line tools**:
+
+1. **screenshot-rename** - One-time rename of existing screenshots
+2. **screenshot-rename-watch** - Background watcher (CLI version)
+3. **screenshot-rename-web** - Web interface on http://localhost:5001
+4. **screenshot-rename-menubar** - Menu bar app (includes watcher + web server)
+
+**For CLI-Only Users:**
+
+If you prefer command-line tools and don't want the menu bar app:
+
+```bash
+# Install the package (all 4 commands available)
+pip install -e .
+
+# Use the CLI commands
+screenshot-rename --auto-detect           # One-time rename
+screenshot-rename-watch --auto-detect     # Background watcher
+screenshot-rename-web                     # Web interface
+
+# Skip the launch agent installer
+# (./install_launch_agent.sh is only for menu bar auto-start)
+```
+
+The menu bar app only runs if you explicitly launch it with `screenshot-rename-menubar` or install the launch agent.
+
 ## Usage
 
 ### Menu Bar App (Easiest)
@@ -96,7 +124,7 @@ screenshot-rename --prefix "MyScreenshot"
 
 **Launch the web interface:**
 ```bash
-python -m src.web_app
+screenshot-rename-web
 ```
 
 Then open `http://localhost:5001` in your browser.
