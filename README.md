@@ -257,3 +257,68 @@ All dependencies are compatible with our MIT license.
 MIT License - see LICENSE file for details.
 
 Created by [Chris Tirpak](https://github.com/tpak)
+
+---
+
+ When you run pip install -e ., all 4 commands are installed automatically:
+
+  1. screenshot-rename (One-time rename)
+
+  # Auto-detect macOS settings and rename
+  screenshot-rename --auto-detect
+
+  # Rename specific directory
+  screenshot-rename /path/to/screenshots
+
+  # With custom prefix
+  screenshot-rename --prefix "MyScreenshot" ~/Desktop
+
+  # With directory whitelist
+  screenshot-rename --whitelist ~/Desktop ~/Documents
+
+  2. screenshot-rename-watch (CLI background watcher)
+
+  # Auto-detect and watch
+  screenshot-rename-watch --auto-detect
+
+  # Watch specific directory
+  screenshot-rename-watch /path/to/screenshots
+
+  # With custom prefix
+  screenshot-rename-watch --prefix "MyScreenshot"
+
+  3. screenshot-rename-web (Web interface)
+
+  # Launch web UI on http://localhost:5001
+  screenshot-rename-web
+
+  4. screenshot-rename-menubar (Menu bar app)
+
+  # Launch menu bar app (includes watcher + web server)
+  screenshot-rename-menubar
+
+  Installation Details
+
+  pip install -e . installs:
+  - ✅ All 4 CLI commands above
+  - ✅ All dependencies (Flask, watchdog, rumps)
+  - ✅ Python package screenshot-renamer
+
+  ./install_launch_agent.sh only:
+  - Sets up auto-start for the menu bar app on login
+  - Does NOT install the commands (run pip install -e . first)
+  - Optional - only for users who want the menu bar app to auto-start
+
+  For CLI-Only Users
+
+  Users who don't want the menu bar app can:
+
+  1. Install the package:
+  pip install -e .
+  2. Use any of the first 3 commands:
+    - screenshot-rename for one-time renames
+    - screenshot-rename-watch for background watching
+    - screenshot-rename-web for web interface
+  3. Skip the ./install_launch_agent.sh script entirely
+
+  The menu bar app only runs if explicitly launched with screenshot-rename-menubar or via the launch agent.
