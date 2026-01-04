@@ -2,10 +2,16 @@
 .build/
 .swiftpm/
 
+# Built app bundle
+*.app/
+
 # Xcode
 *.xcodeproj/
 *.xcworkspace/
 xcuserdata/
+
+# Test files
+test_*.swift
 
 # macOS
 .DS_Store
