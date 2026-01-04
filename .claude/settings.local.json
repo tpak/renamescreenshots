@@ -7,7 +7,16 @@
       "Bash(git add:*)",
       "WebFetch(domain:github.com)",
       "Bash(git checkout:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(swiftc:*)",
+      "Bash(swift build:*)",
+      "Bash(cd /Users/chris/source/renamescreenshots/ScreenshotRenamer && swift test_rename.swift:*)",
+      "Bash(open:*)",
+      "Bash(log show --predicate 'process == \"\"ScreenshotRenamer\"\"' --last 30s --style compact)",
+      "Bash(pkill:*)",
+      "Bash(./build-app.sh:*)"
     ]
   }
 }

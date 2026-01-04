@@ -24,19 +24,26 @@ class MenuBarController: NSObject {
 
     override init() {
         super.init()
+        print("📋 MenuBarController initializing...")
         setupMenuBar()
         loadSettings()
         autoStartWatcher()
+        print("📋 MenuBarController initialized")
     }
 
     /// Setup menu bar status item
     private func setupMenuBar() {
+        print("🔧 Setting up menu bar...")
+
         // Create status item
         statusItem = NSStatusBar.system.statusItem(
             withLength: NSStatusItem.variableLength
         )
+        print("✅ Status item created: \(statusItem != nil)")
 
         if let button = statusItem.button {
+            print("✅ Status item button exists")
+
             // Use SF Symbol camera icon (macOS 11+)
             if #available(macOS 11.0, *) {
                 let config = NSImage.SymbolConfiguration(
@@ -48,13 +55,18 @@ class MenuBarController: NSObject {
                     accessibilityDescription: "Screenshot Renamer"
                 )?.withSymbolConfiguration(config)
                 button.image?.isTemplate = true
+                print("✅ SF Symbol icon set")
             } else {
                 // Fallback for older macOS
                 button.title = "📷"
+                print("✅ Emoji icon set")
             }
+        } else {
+            print("❌ ERROR: Status item button is nil!")
         }
 
         buildMenu()
+        print("✅ Menu built and attached")
     }
 
     /// Build the menu
@@ -113,8 +125,11 @@ class MenuBarController: NSObject {
 
     /// Load screenshot settings from macOS
     private func loadSettings() {
+        print("⚙️  Loading settings...")
         let detector = ScreenshotDetector()
         settings = detector.detectSettings()
+        print("✅ Settings loaded: \(settings.location.path)")
+        print("✅ Prefix: \(settings.prefix)")
         updateInfoMenuItems()
     }
 
