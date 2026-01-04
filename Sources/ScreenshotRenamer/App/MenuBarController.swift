@@ -14,6 +14,7 @@ class MenuBarController: NSObject {
     private var statusItem: NSStatusItem!
     private var watcher: ScreenshotWatcher?
     private var settings: ScreenshotSettings!
+    private var detector: ScreenshotDetector!
     private var isWatcherRunning = false
 
     // Menu items (strong references)
@@ -94,6 +95,17 @@ class MenuBarController: NSObject {
 
         menu.addItem(NSMenuItem.separator())
 
+        // Change location
+        let changeLocationItem = NSMenuItem(
+            title: "Change Location...",
+            action: #selector(changeLocation),
+            keyEquivalent: "l"
+        )
+        changeLocationItem.target = self
+        menu.addItem(changeLocationItem)
+
+        menu.addItem(NSMenuItem.separator())
+
         // Info items (non-clickable)
         locationMenuItem = NSMenuItem(
             title: "Location: ...",
@@ -126,7 +138,7 @@ class MenuBarController: NSObject {
     /// Load screenshot settings from macOS
     private func loadSettings() {
         print("⚙️  Loading settings...")
-        let detector = ScreenshotDetector()
+        detector = ScreenshotDetector()
         settings = detector.detectSettings()
         print("✅ Settings loaded: \(settings.location.path)")
         print("✅ Prefix: \(settings.prefix)")
@@ -242,6 +254,62 @@ class MenuBarController: NSObject {
                     title: "Quick Rename Failed",
                     message: error.localizedDescription
                 )
+            }
+        }
+    }
+
+    /// Change screenshot location
+    @objc private func changeLocation() {
+        Task { @MainActor in
+            let panel = NSOpenPanel()
+            panel.title = "Choose Screenshot Folder"
+            panel.message = "Select a folder where screenshots will be saved"
+            panel.canChooseDirectories = true
+            panel.canChooseFiles = false
+            panel.canCreateDirectories = true
+            panel.allowsMultipleSelection = false
+            panel.directoryURL = settings.location // Start at current location
+
+            // Show "Reset to Default" button
+            panel.showsResizeIndicator = true
+            panel.showsHiddenFiles = false
+
+            let response = panel.runModal()
+
+            if response == .OK, let selectedURL = panel.url {
+                // Save custom location
+                detector.setCustomLocation(selectedURL)
+
+                // Reload settings
+                let wasRunning = isWatcherRunning
+                if wasRunning {
+                    stopWatcher()
+                }
+
+                loadSettings()
+
+                if wasRunning {
+                    do {
+                        try startWatcher()
+                        showNotification(
+                            title: "Location Changed",
+                            message: "Now watching: \(shortenPath(selectedURL.path))"
+                        )
+                    } catch {
+                        showAlert(
+                            title: "Error",
+                            message: "Failed to restart watcher: \(error.localizedDescription)"
+                        )
+                    }
+                } else {
+                    showAlert(
+                        title: "Location Changed",
+                        message: "Screenshot location updated to:\n\(selectedURL.path)\n\nStart the watcher to begin monitoring."
+                    )
+                }
+
+                os_log("Screenshot location changed to: %{public}@",
+                       log: .default, type: .info, selectedURL.path)
             }
         }
     }
