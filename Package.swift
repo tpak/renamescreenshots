@@ -14,13 +14,11 @@ let package = Package(
         .executableTarget(
             name: "ScreenshotRenamer",
             dependencies: [],
-            path: "ScreenshotRenamer",
             exclude: ["Resources/Info.plist"]
         ),
         .testTarget(
             name: "ScreenshotRenamerTests",
-            dependencies: ["ScreenshotRenamer"],
-            path: "ScreenshotRenamerTests"
+            dependencies: ["ScreenshotRenamer"]
         )
     ]
 )

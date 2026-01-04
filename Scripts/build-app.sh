@@ -18,7 +18,7 @@ cp .build/release/ScreenshotRenamer "$APP_DIR/MacOS/"
 chmod +x "$APP_DIR/MacOS/ScreenshotRenamer"
 
 # Copy Info.plist
-cp ScreenshotRenamer/Resources/Info.plist "$APP_DIR/"
+cp Sources/ScreenshotRenamer/Resources/Info.plist "$APP_DIR/"
 
 # Code sign (ad-hoc for local use)
 codesign --force --deep --sign - "$APP_NAME"
