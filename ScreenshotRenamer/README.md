@@ -22,35 +22,53 @@ This is a native Swift port of the [Python version](../README.md) with several a
 
 ## Building
 
-### Option 1: Xcode GUI
+### Quick Build (Recommended)
 
-1. Open `ScreenshotRenamer.xcodeproj` in Xcode
-2. Select "ScreenshotRenamer" scheme
-3. Build: `⌘B` or Product → Build
-4. Run: `⌘R` or Product → Run
-
-### Option 2: Command Line
+Use the included build script:
 
 ```bash
-# Build for release
-xcodebuild -project ScreenshotRenamer.xcodeproj \
-    -scheme ScreenshotRenamer \
-    -configuration Release \
-    build
-
-# Run the built app
-open build/Release/ScreenshotRenamer.app
+./build-app.sh
 ```
+
+This creates `ScreenshotRenamer.app` (224KB) ready to use!
+
+### Manual Build
+
+```bash
+# Build release binary
+swift build -c release
+
+# Create .app bundle
+mkdir -p ScreenshotRenamer.app/Contents/{MacOS,Resources}
+cp .build/release/ScreenshotRenamer ScreenshotRenamer.app/Contents/MacOS/
+cp ScreenshotRenamer/Resources/Info.plist ScreenshotRenamer.app/Contents/
+chmod +x ScreenshotRenamer.app/Contents/MacOS/ScreenshotRenamer
+
+# Code sign
+codesign --force --deep --sign - ScreenshotRenamer.app
+```
+
+### Using Xcode (Alternative)
+
+1. Open Xcode
+2. File → New → Project → macOS → App
+3. Add all Swift source files from `ScreenshotRenamer/`
+4. Build: `⌘B`
 
 ## Installation
 
 ### From .app Bundle
 
-1. Build the app (see above)
+1. Build the app:
+   ```bash
+   ./build-app.sh
+   ```
+
 2. Copy to Applications:
    ```bash
-   cp -r build/Release/ScreenshotRenamer.app /Applications/
+   cp -r ScreenshotRenamer.app /Applications/
    ```
+
 3. Launch from Applications or Spotlight
 
 ### Auto-Start on Login
