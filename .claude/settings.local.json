@@ -16,7 +16,10 @@
       "Bash(open:*)",
       "Bash(log show --predicate 'process == \"\"ScreenshotRenamer\"\"' --last 30s --style compact)",
       "Bash(pkill:*)",
-      "Bash(./build-app.sh:*)"
+      "Bash(./build-app.sh:*)",
+      "Bash(tree:*)",
+      "Bash(swift test:*)",
+      "Bash(./Scripts/build-app.sh:*)"
     ]
   }
 }
