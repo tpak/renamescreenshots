@@ -12,6 +12,9 @@ import os.log
 /// Detects macOS screenshot location and filename prefix
 class ScreenshotDetector {
 
+    /// UserDefaults key for custom screenshot location
+    static let customLocationKey = "customScreenshotLocation"
+
     /// Detect current screenshot settings from macOS
     /// - Returns: ScreenshotSettings with location and prefix
     func detectSettings() -> ScreenshotSettings {
@@ -25,10 +28,46 @@ class ScreenshotDetector {
         return ScreenshotSettings(location: location, prefix: prefix)
     }
 
+    /// Set custom screenshot location
+    /// - Parameter location: URL of the custom location
+    func setCustomLocation(_ location: URL) {
+        UserDefaults.standard.set(location.path, forKey: Self.customLocationKey)
+        os_log("Custom screenshot location set: %{public}@",
+               log: .default, type: .info, location.path)
+    }
+
+    /// Clear custom screenshot location (revert to macOS defaults)
+    func clearCustomLocation() {
+        UserDefaults.standard.removeObject(forKey: Self.customLocationKey)
+        os_log("Custom screenshot location cleared",
+               log: .default, type: .info)
+    }
+
     /// Detect screenshot save location
-    /// Reads from: defaults read com.apple.screencapture location
-    /// Falls back to ~/Desktop if not set or invalid
+    /// Priority: 1. Custom location (UserDefaults), 2. macOS defaults, 3. ~/Desktop
     private func detectLocation() -> URL {
+        // Check for custom location first
+        if let customPath = UserDefaults.standard.string(forKey: Self.customLocationKey) {
+            let url = URL(fileURLWithPath: customPath)
+            var isDirectory: ObjCBool = false
+            let exists = FileManager.default.fileExists(
+                atPath: url.path,
+                isDirectory: &isDirectory
+            )
+
+            if exists && isDirectory.boolValue {
+                os_log("Using custom screenshot location: %{public}@",
+                       log: .default, type: .debug, url.path)
+                return url
+            } else {
+                os_log("Custom location invalid, falling back to macOS defaults",
+                       log: .default, type: .debug)
+                // Clear invalid custom location
+                clearCustomLocation()
+            }
+        }
+
+        // Fall back to macOS defaults
         guard let output = ShellExecutor.readDefaults(
             domain: "com.apple.screencapture",
             key: "location"
