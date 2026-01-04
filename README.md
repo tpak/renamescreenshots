@@ -27,8 +27,7 @@ macOS screenshot names don't sort chronologically in Finder due to 12-hour time 
 ### 1. Build
 
 ```bash
-cd ScreenshotRenamer
-./build-app.sh
+./Scripts/build-app.sh
 ```
 
 This creates `ScreenshotRenamer.app` (224KB) in seconds.
@@ -52,7 +51,7 @@ The 📷 camera icon will appear in your menu bar. Take a screenshot and it will
 ### Quick Build (Recommended)
 
 ```bash
-./build-app.sh
+./Scripts/build-app.sh
 ```
 
 ### Manual Build
@@ -64,7 +63,7 @@ swift build -c release
 # Create .app bundle
 mkdir -p ScreenshotRenamer.app/Contents/{MacOS,Resources}
 cp .build/release/ScreenshotRenamer ScreenshotRenamer.app/Contents/MacOS/
-cp ScreenshotRenamer/Resources/Info.plist ScreenshotRenamer.app/Contents/
+cp Sources/ScreenshotRenamer/Resources/Info.plist ScreenshotRenamer.app/Contents/
 chmod +x ScreenshotRenamer.app/Contents/MacOS/ScreenshotRenamer
 
 # Code sign
@@ -159,32 +158,37 @@ All 25 unit tests cover:
 ### Project Structure
 
 ```
-ScreenshotRenamer/
-├── ScreenshotRenamer/
-│   ├── App/
-│   │   ├── AppDelegate.swift         # App lifecycle
-│   │   ├── MenuBarController.swift   # Menu bar UI
-│   │   └── main.swift                # Entry point
-│   ├── Core/
-│   │   ├── ScreenshotDetector.swift  # Settings detection
-│   │   ├── ScreenshotRenamer.swift   # Rename logic
-│   │   ├── PatternMatcher.swift      # Regex matching
-│   │   └── FileValidator.swift       # Security
-│   ├── FileWatcher/
-│   │   └── ScreenshotWatcher.swift   # FSEvents watcher
-│   ├── Models/
-│   │   ├── ScreenshotSettings.swift
-│   │   ├── RenameResult.swift
-│   │   ├── ScreenshotMatch.swift
-│   │   └── ScreenshotError.swift
-│   ├── Utilities/
-│   │   └── ShellExecutor.swift       # Shell commands
-│   └── Resources/
-│       └── Info.plist                # App metadata
-├── ScreenshotRenamerTests/           # Unit tests
-├── Package.swift                     # Swift Package Manager
-├── build-app.sh                      # Build script
-└── README.md                         # This file
+.
+├── Sources/
+│   └── ScreenshotRenamer/
+│       ├── App/
+│       │   ├── AppDelegate.swift         # App lifecycle
+│       │   ├── MenuBarController.swift   # Menu bar UI
+│       │   └── main.swift                # Entry point
+│       ├── Core/
+│       │   ├── ScreenshotDetector.swift  # Settings detection
+│       │   ├── ScreenshotRenamer.swift   # Rename logic
+│       │   ├── PatternMatcher.swift      # Regex matching
+│       │   └── FileValidator.swift       # Security
+│       ├── FileWatcher/
+│       │   └── ScreenshotWatcher.swift   # FSEvents watcher
+│       ├── Models/
+│       │   ├── ScreenshotSettings.swift
+│       │   ├── RenameResult.swift
+│       │   ├── ScreenshotMatch.swift
+│       │   └── ScreenshotError.swift
+│       ├── Utilities/
+│       │   └── ShellExecutor.swift       # Shell commands
+│       └── Resources/
+│           └── Info.plist                # App metadata
+├── Tests/
+│   └── ScreenshotRenamerTests/           # Unit tests
+├── Scripts/
+│   ├── build-app.sh                      # Build script
+│   └── test-rename.swift                 # Test utility
+├── Package.swift                         # Swift Package Manager
+├── README.md                             # This file
+└── LICENSE
 ```
 
 ## Distribution
