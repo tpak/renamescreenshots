@@ -150,10 +150,12 @@ class MenuBarController: NSObject {
         } catch {
             os_log("Failed to auto-start watcher: %{public}@",
                    log: .default, type: .error, error.localizedDescription)
-            showAlert(
-                title: "Watcher Error",
-                message: "Failed to start watcher: \(error.localizedDescription)"
-            )
+            Task { @MainActor in
+                showAlert(
+                    title: "Watcher Error",
+                    message: "Failed to start watcher: \(error.localizedDescription)"
+                )
+            }
         }
     }
 
@@ -177,10 +179,12 @@ class MenuBarController: NSObject {
                     message: "Watching: \(shortenPath(settings.location.path))"
                 )
             } catch {
-                showAlert(
-                    title: "Error",
-                    message: "Failed to start watcher: \(error.localizedDescription)"
-                )
+                Task { @MainActor in
+                    showAlert(
+                        title: "Error",
+                        message: "Failed to start watcher: \(error.localizedDescription)"
+                    )
+                }
             }
         }
     }
