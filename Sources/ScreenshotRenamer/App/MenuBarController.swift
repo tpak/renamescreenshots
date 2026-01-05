@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import UserNotifications
 import os.log
 
 /// Controls the menu bar icon and menu
@@ -27,6 +28,7 @@ class MenuBarController: NSObject {
         super.init()
         print("📋 MenuBarController initializing...")
         setupMenuBar()
+        requestNotificationPermissions()
         loadSettings()
         autoStartWatcher()
         print("📋 MenuBarController initialized")
@@ -263,7 +265,7 @@ class MenuBarController: NSObject {
         Task { @MainActor in
             let panel = NSOpenPanel()
             panel.title = "Choose Screenshot Folder"
-            panel.message = "Select a folder where screenshots will be saved"
+            panel.message = "Select where system screenshots (⌘⇧4) will be saved"
             panel.canChooseDirectories = true
             panel.canChooseFiles = false
             panel.canCreateDirectories = true
@@ -277,23 +279,34 @@ class MenuBarController: NSObject {
             let response = panel.runModal()
 
             if response == .OK, let selectedURL = panel.url {
-                // Save custom location
-                detector.setCustomLocation(selectedURL)
+                // Change system screenshot location
+                guard detector.setSystemLocation(selectedURL) else {
+                    showAlert(
+                        title: "Error",
+                        message: "Failed to change system screenshot location. Please check permissions."
+                    )
+                    return
+                }
 
-                // Reload settings
+                // Restart SystemUIServer to apply changes
+                _ = ShellExecutor.restartSystemUIServer()
+
+                // Stop watcher before reloading settings
                 let wasRunning = isWatcherRunning
                 if wasRunning {
                     stopWatcher()
                 }
 
+                // Reload settings (will now read from updated system location)
                 loadSettings()
 
+                // Restart watcher with new location
                 if wasRunning {
                     do {
                         try startWatcher()
                         showNotification(
-                            title: "Location Changed",
-                            message: "Now watching: \(shortenPath(selectedURL.path))"
+                            title: "System Location Changed",
+                            message: "Screenshots will now save to: \(shortenPath(selectedURL.path))"
                         )
                     } catch {
                         showAlert(
@@ -303,12 +316,12 @@ class MenuBarController: NSObject {
                     }
                 } else {
                     showAlert(
-                        title: "Location Changed",
-                        message: "Screenshot location updated to:\n\(selectedURL.path)\n\nStart the watcher to begin monitoring."
+                        title: "System Location Changed",
+                        message: "System screenshot location updated to:\n\(selectedURL.path)\n\nNew screenshots (⌘⇧4) will save here.\n\nStart the watcher to begin monitoring."
                     )
                 }
 
-                os_log("Screenshot location changed to: %{public}@",
+                os_log("System screenshot location changed to: %{public}@",
                        log: .default, type: .info, selectedURL.path)
             }
         }
@@ -324,13 +337,38 @@ class MenuBarController: NSObject {
 
     // MARK: - User Notifications
 
-    /// Show macOS notification
+    /// Request notification permissions
+    private func requestNotificationPermissions() {
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error {
+                os_log("Notification permission error: %{public}@",
+                       log: .default, type: .debug, error.localizedDescription)
+            }
+        }
+    }
+
+    /// Show macOS notification using modern UserNotifications framework
     private func showNotification(title: String, message: String) {
-        let notification = NSUserNotification()
-        notification.title = title
-        notification.informativeText = message
-        notification.soundName = nil
-        NSUserNotificationCenter.default.deliver(notification)
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = message
+        content.sound = nil
+
+        // Create request with unique identifier
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil // Deliver immediately
+        )
+
+        // Schedule notification
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                os_log("Failed to show notification: %{public}@",
+                       log: .default, type: .debug, error.localizedDescription)
+            }
+        }
     }
 
     /// Show alert dialog

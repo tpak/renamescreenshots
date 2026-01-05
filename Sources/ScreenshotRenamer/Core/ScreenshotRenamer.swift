@@ -64,22 +64,21 @@ class ScreenshotRenamer {
                 // Sanitize new filename
                 try validator.sanitizeFilename(newFilename)
 
-                // Build new URL
-                let newURL = settings.location.appendingPathComponent(newFilename)
+                // Find available filename (handle duplicates like macOS does)
+                let finalFilename = findAvailableFilename(
+                    newFilename,
+                    in: settings.location,
+                    fileManager: fileManager
+                )
 
-                // Check if target already exists
-                if fileManager.fileExists(atPath: newURL.path) {
-                    os_log("Skipping: target exists - %{public}@",
-                           log: .default, type: .info, newFilename)
-                    errors.append("Target exists: \(newFilename)")
-                    continue
-                }
+                // Build final URL
+                let newURL = settings.location.appendingPathComponent(finalFilename)
 
                 // Perform rename
                 try fileManager.moveItem(at: fileURL, to: newURL)
 
                 os_log("Renamed: %{public}@ -> %{public}@",
-                       log: .default, type: .info, filename, newFilename)
+                       log: .default, type: .info, filename, finalFilename)
                 renamedFiles += 1
 
             } catch {
@@ -103,5 +102,73 @@ class ScreenshotRenamer {
         return try await Task.detached(priority: .userInitiated) {
             try self.renameScreenshots()
         }.value
+    }
+
+    /// Find available filename by appending sequence numbers if needed
+    /// Mimics macOS behavior: file.png, file 1.png, file 2.png, etc.
+    /// - Parameters:
+    ///   - baseFilename: The desired filename (e.g., "screenshot 2026-01-05 at 21.30.45.png")
+    ///   - directory: Directory where file will be saved
+    ///   - fileManager: FileManager instance
+    /// - Returns: Available filename (may have sequence number appended)
+    private func findAvailableFilename(
+        _ baseFilename: String,
+        in directory: URL,
+        fileManager: FileManager
+    ) -> String {
+        // Check if base filename is available
+        let baseURL = directory.appendingPathComponent(baseFilename)
+        if !fileManager.fileExists(atPath: baseURL.path) {
+            return baseFilename
+        }
+
+        // Split filename into name and extension (split from the RIGHT to get last extension)
+        guard let lastDotIndex = baseFilename.lastIndex(of: ".") else {
+            // No extension, just append numbers
+            return findSequencedFilename(baseFilename, "", in: directory, fileManager: fileManager)
+        }
+
+        let nameWithoutExtension = String(baseFilename[..<lastDotIndex])
+        let fileExtension = String(baseFilename[baseFilename.index(after: lastDotIndex)...])
+
+        return findSequencedFilename(nameWithoutExtension, fileExtension, in: directory, fileManager: fileManager)
+    }
+
+    /// Find available filename with sequence number
+    /// - Parameters:
+    ///   - name: Filename without extension
+    ///   - fileExtension: File extension (without dot)
+    ///   - directory: Directory where file will be saved
+    ///   - fileManager: FileManager instance
+    /// - Returns: Filename with sequence number (e.g., "file 1.png")
+    private func findSequencedFilename(
+        _ name: String,
+        _ fileExtension: String,
+        in directory: URL,
+        fileManager: FileManager
+    ) -> String {
+        // Try sequence numbers 1, 2, 3, ... up to 999
+        for i in 1...999 {
+            let sequencedName = fileExtension.isEmpty
+                ? "\(name) \(i)"
+                : "\(name) \(i).\(fileExtension)"
+
+            let url = directory.appendingPathComponent(sequencedName)
+            if !fileManager.fileExists(atPath: url.path) {
+                os_log("Found available filename with sequence: %{public}@",
+                       log: .default, type: .debug, sequencedName)
+                return sequencedName
+            }
+        }
+
+        // Fallback: append timestamp if we somehow have 999+ duplicates
+        let timestamp = Int(Date().timeIntervalSince1970)
+        let fallbackName = fileExtension.isEmpty
+            ? "\(name) \(timestamp)"
+            : "\(name) \(timestamp).\(fileExtension)"
+
+        os_log("Using timestamp fallback for filename: %{public}@",
+               log: .default, type: .info, fallbackName)
+        return fallbackName
     }
 }

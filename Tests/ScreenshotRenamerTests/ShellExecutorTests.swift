@@ -1,0 +1,81 @@
+//
+//  ShellExecutorTests.swift
+//  ScreenshotRenamerTests
+//
+//  Unit tests for shell command execution
+//
+
+import XCTest
+@testable import ScreenshotRenamer
+
+class ShellExecutorTests: XCTestCase {
+
+    func testReadDefaults() {
+        // Test reading an existing defaults value
+        // This test reads the actual system value
+        let location = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "location"
+        )
+
+        // Location might be nil if not set, which is valid
+        if let location = location {
+            XCTAssertFalse(location.isEmpty, "Location should not be empty if set")
+        }
+    }
+
+    func testReadDefaultsInvalidDomain() {
+        // Test reading from invalid domain returns nil
+        let result = ShellExecutor.readDefaults(
+            domain: "com.nonexistent.domain.test",
+            key: "somekey"
+        )
+
+        XCTAssertNil(result, "Reading from invalid domain should return nil")
+    }
+
+    func testWriteDefaults() {
+        // Create a temporary test domain to avoid affecting system settings
+        let testDomain = "com.tirpak.screenshot-renamer.test"
+        let testKey = "testKey"
+        let testValue = "/tmp/test-location"
+
+        // Write the default
+        let writeSuccess = ShellExecutor.writeDefaults(
+            domain: testDomain,
+            key: testKey,
+            value: testValue
+        )
+
+        XCTAssertTrue(writeSuccess, "Writing defaults should succeed")
+
+        // Read it back to verify
+        let readValue = ShellExecutor.readDefaults(
+            domain: testDomain,
+            key: testKey
+        )
+
+        XCTAssertEqual(readValue, testValue, "Read value should match written value")
+
+        // Cleanup: delete the test key
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        process.arguments = ["delete", testDomain, testKey]
+        try? process.run()
+        process.waitUntilExit()
+    }
+
+    func testRestartSystemUIServer() {
+        // Note: This test actually restarts SystemUIServer
+        // The menu bar will briefly flicker, which is expected behavior
+        // We just verify the command executes without error
+
+        let success = ShellExecutor.restartSystemUIServer()
+
+        // The command should succeed (SystemUIServer auto-restarts)
+        XCTAssertTrue(success, "Restarting SystemUIServer should succeed")
+
+        // Give it a moment to restart
+        Thread.sleep(forTimeInterval: 0.5)
+    }
+}
