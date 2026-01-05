@@ -16,6 +16,7 @@ macOS screenshot names don't sort chronologically in Finder due to 12-hour time 
 - 🔄 Auto-rename - watches for new screenshots in real-time
 - ⚙️ Settings control - manage all macOS screenshot preferences
 - 📁 Location changer - set system screenshot save location
+- 🚀 Launch at login - one-click auto-start on system boot
 - ⚡ Instant startup - native Swift binary (264KB)
 - 🎯 Auto-detect - reads your macOS screenshot settings
 - 🔒 Secure - full path validation and sandboxing support
@@ -102,6 +103,7 @@ Once installed, the camera icon 📷 appears in your menu bar with these options
 - **Quick Rename...** - Manually rename existing screenshots in current location
 - **Change Location...** - Set system screenshot save location (changes where ⌘⇧4 saves)
 - **Screenshot Settings** - Configure macOS screenshot preferences (see below)
+- **Launch at Login** - Toggle auto-start on login (macOS 11+)
 - **Location** - Shows current screenshot save directory
 - **Prefix** - Shows detected screenshot filename prefix
 - **Quit** - Exit the app (⌘Q)
@@ -127,6 +129,18 @@ Control all macOS screenshot preferences from one menu:
 All settings apply system-wide and persist across app restarts. The menu bar may briefly flicker when applying settings (SystemUIServer restart).
 
 ### Auto-Start on Login
+
+**Built-in Menu Option (Recommended)**
+
+Simply click **"Launch at Login"** in the menu bar to toggle auto-start on or off. The checkmark shows the current state.
+
+- **macOS 13+**: Uses native SMAppService API
+- **macOS 11-12**: Automatically creates LaunchAgent
+- Settings persist across system restarts
+
+**Manual Options**
+
+If you prefer to configure auto-start manually:
 
 **Option 1: System Preferences**
 1. Open System Settings → General → Login Items
@@ -234,10 +248,11 @@ The app provides a unified interface for all macOS screenshot settings that are 
 swift test
 ```
 
-All 45 unit tests cover:
+All 55 unit tests cover:
 - Pattern matching (13 tests)
 - File validation (12 tests)
 - Screenshot detection (10 tests)
+- Launch at login (10 tests)
 - Shell command execution (5 tests)
 - Screenshot renaming with duplicates (5 tests)
 
@@ -350,12 +365,12 @@ rm ~/Library/LaunchAgents/com.tirpak.screenshot-renamer.plist
 ## Technical Details
 
 - **Language:** Swift 5.7+
-- **Frameworks:** AppKit, CoreServices (FSEvents), Foundation, UserNotifications
+- **Frameworks:** AppKit, CoreServices (FSEvents), Foundation, ServiceManagement, UserNotifications
 - **Build System:** Swift Package Manager
 - **Binary Size:** 264KB (release build)
 - **Memory Usage:** ~20MB at runtime
 - **Startup Time:** Instant (<100ms)
-- **Tests:** 45 unit tests covering all core functionality
+- **Tests:** 55 unit tests covering all core functionality
 - **macOS APIs:** NSStatusBar, NSMenu, FSEvents, defaults system
 
 ## Contributing

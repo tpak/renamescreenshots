@@ -21,6 +21,7 @@ class MenuBarController: NSObject {
     // Menu items (strong references)
     private var watcherMenuItem: NSMenuItem!
     private var quickRenameMenuItem: NSMenuItem!
+    private var launchAtLoginMenuItem: NSMenuItem!
     private var locationMenuItem: NSMenuItem!
     private var prefixMenuItem: NSMenuItem!
 
@@ -125,6 +126,18 @@ class MenuBarController: NSObject {
         )
         settingsMenuItem.submenu = settingsSubmenu
         menu.addItem(settingsMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
+
+        // Launch at Login toggle
+        launchAtLoginMenuItem = NSMenuItem(
+            title: "Launch at Login",
+            action: #selector(toggleLaunchAtLogin),
+            keyEquivalent: ""
+        )
+        launchAtLoginMenuItem.target = self
+        launchAtLoginMenuItem.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
+        menu.addItem(launchAtLoginMenuItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -430,6 +443,34 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
+    }
+
+    /// Toggle launch at login
+    @objc private func toggleLaunchAtLogin() {
+        let result = LaunchAtLoginManager.shared.toggle()
+
+        switch result {
+        case .success(let isEnabled):
+            launchAtLoginMenuItem.state = isEnabled ? .on : .off
+            showNotification(
+                title: "Launch at Login \(isEnabled ? "Enabled" : "Disabled")",
+                message: isEnabled
+                    ? "Screenshot Renamer will launch automatically when you log in"
+                    : "Screenshot Renamer will not launch automatically"
+            )
+            os_log("Launch at login %{public}@",
+                   log: .default, type: .info, isEnabled ? "enabled" : "disabled")
+
+        case .failure(let error):
+            Task { @MainActor in
+                showAlert(
+                    title: "Launch at Login Error",
+                    message: error.localizedDescription
+                )
+            }
+            os_log("Failed to toggle launch at login: %{public}@",
+                   log: .default, type: .error, error.localizedDescription)
+        }
     }
 
     // MARK: - Screenshot Settings Actions
