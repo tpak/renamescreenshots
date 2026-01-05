@@ -1,4 +1,5 @@
 # Screenshot Renamer
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Native macOS menu bar app to automatically rename screenshots from 12-hour to 24-hour format.
@@ -24,29 +25,48 @@ macOS screenshot names don't sort chronologically in Finder due to 12-hour time 
 - **macOS 11.0 (Big Sur)** or later
 - No external dependencies!
 
+## Installation
+
+### Option 1: Download from GitHub Releases (Recommended)
+
+**Latest stable release:**
+
+1. Download the latest release from [GitHub Releases](https://github.com/tpak/renamescreenshots/releases/latest)
+2. Choose either:
+   - **ScreenshotRenamer.dmg** - Disk image with drag-and-drop installer
+   - **ScreenshotRenamer.zip** - ZIP archive
+3. Open the downloaded file
+4. For DMG: Drag app to Applications folder
+5. For ZIP: Unzip and move app to Applications
+6. Launch the app (Right-click → Open on first run to bypass Gatekeeper)
+
+**Latest development build:**
+
+Get the cutting-edge version from the [latest tag](https://github.com/tpak/renamescreenshots/releases/tag/latest)
+
+**Verify download (optional):**
+```bash
+shasum -a 256 -c ScreenshotRenamer.zip.sha256
+```
+
+### Option 2: Build from Source
+
+See [Building from Source](#building-from-source) below.
+
+### Option 3: Homebrew (Coming Soon)
+
+Homebrew distribution will be available once code signing and notarization are implemented.
+
 ## Quick Start
 
-### 1. Build
+1. [Download the latest release](https://github.com/tpak/renamescreenshots/releases/latest)
+2. Open `ScreenshotRenamer.dmg` or unzip `ScreenshotRenamer.zip`
+3. Move `ScreenshotRenamer.app` to your Applications folder
+4. Right-click the app and select "Open" (first time only, to bypass Gatekeeper)
+5. The 📷 camera icon appears in your menu bar
+6. Take a screenshot (⌘⇧4) and it will be automatically renamed!
 
-```bash
-./Scripts/build-app.sh
-```
-
-This creates `ScreenshotRenamer.app` (264KB) in seconds.
-
-### 2. Install
-
-```bash
-cp -r ScreenshotRenamer.app /Applications/
-```
-
-### 3. Run
-
-```bash
-open /Applications/ScreenshotRenamer.app
-```
-
-The 📷 camera icon will appear in your menu bar. Take a screenshot and it will be automatically renamed!
+No build required - just download and run!
 
 ## Building from Source
 
@@ -260,7 +280,25 @@ All 45 unit tests cover:
 
 ## Distribution
 
-### Code Signing
+### Current: GitHub Releases
+
+All releases are available as downloadable ZIP and DMG files from [GitHub Releases](https://github.com/tpak/renamescreenshots/releases).
+
+**Automated Release Process:**
+- Every push to `main` creates a "latest" pre-release build
+- Git tags (e.g., `v1.0.0`) create official versioned releases
+- All releases include ZIP, DMG, and SHA256 checksums
+- Direct download links never expire
+
+### Future: Code Signing & Notarization
+
+Full code signing and Apple notarization will be added in a future release to eliminate Gatekeeper warnings. This requires an Apple Developer account ($99/year).
+
+### Future: Homebrew
+
+Homebrew cask distribution is planned once code signing and notarization are implemented.
+
+### Code Signing (Current: Ad-hoc)
 
 **For local use:**
 ```bash

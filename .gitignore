@@ -22,3 +22,12 @@ DerivedData/
 
 # Test outputs
 *.xcresult
+
+# Build artifacts and backups
+*.plist.backup
+*.zip
+*.dmg
+*.sha256
+
+# Generated release files (temporary files from workflows)
+release_notes.md
