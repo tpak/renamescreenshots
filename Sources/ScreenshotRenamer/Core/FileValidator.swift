@@ -56,8 +56,10 @@ class FileValidator {
                 let allowedPath = allowed.path
 
                 // Allow exact match or subdirectory
+                // Ensure trailing slash is properly handled to prevent false matches
+                let allowedWithSlash = allowedPath.hasSuffix("/") ? allowedPath : allowedPath + "/"
                 return resolvedPath == allowedPath ||
-                       resolvedPath.hasPrefix(allowedPath + "/")
+                       resolvedPath.hasPrefix(allowedWithSlash)
             }
 
             guard isAllowed else {

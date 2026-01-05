@@ -286,6 +286,7 @@ class MenuBarController: NSObject {
     }
 
     /// Toggle watcher on/off
+    @MainActor
     @objc private func toggleWatcher() {
         if isWatcherRunning {
             stopWatcher()
@@ -358,69 +359,68 @@ class MenuBarController: NSObject {
     }
 
     /// Change screenshot location
+    @MainActor
     @objc private func changeLocation() {
-        Task { @MainActor in
-            let panel = NSOpenPanel()
-            panel.title = "Choose Screenshot Folder"
-            panel.message = "Select where system screenshots (⌘⇧4) will be saved"
-            panel.canChooseDirectories = true
-            panel.canChooseFiles = false
-            panel.canCreateDirectories = true
-            panel.allowsMultipleSelection = false
-            panel.directoryURL = settings.location // Start at current location
+        let panel = NSOpenPanel()
+        panel.title = "Choose Screenshot Folder"
+        panel.message = "Select where system screenshots (⌘⇧4) will be saved"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = settings.location // Start at current location
 
-            // Show "Reset to Default" button
-            panel.showsResizeIndicator = true
-            panel.showsHiddenFiles = false
+        // Show "Reset to Default" button
+        panel.showsResizeIndicator = true
+        panel.showsHiddenFiles = false
 
-            let response = panel.runModal()
+        let response = panel.runModal()
 
-            if response == .OK, let selectedURL = panel.url {
-                // Change system screenshot location
-                guard detector.setSystemLocation(selectedURL) else {
+        if response == .OK, let selectedURL = panel.url {
+            // Change system screenshot location
+            guard detector.setSystemLocation(selectedURL) else {
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change system screenshot location. Please check permissions."
+                )
+                return
+            }
+
+            // Restart SystemUIServer to apply changes
+            _ = ShellExecutor.restartSystemUIServer()
+
+            // Stop watcher before reloading settings
+            let wasRunning = isWatcherRunning
+            if wasRunning {
+                stopWatcher()
+            }
+
+            // Reload settings (will now read from updated system location)
+            loadSettings()
+
+            // Restart watcher with new location
+            if wasRunning {
+                do {
+                    try startWatcher()
+                    showNotification(
+                        title: "System Location Changed",
+                        message: "Screenshots will now save to: \(shortenPath(selectedURL.path))"
+                    )
+                } catch {
                     showAlert(
                         title: "Error",
-                        message: "Failed to change system screenshot location. Please check permissions."
-                    )
-                    return
-                }
-
-                // Restart SystemUIServer to apply changes
-                _ = ShellExecutor.restartSystemUIServer()
-
-                // Stop watcher before reloading settings
-                let wasRunning = isWatcherRunning
-                if wasRunning {
-                    stopWatcher()
-                }
-
-                // Reload settings (will now read from updated system location)
-                loadSettings()
-
-                // Restart watcher with new location
-                if wasRunning {
-                    do {
-                        try startWatcher()
-                        showNotification(
-                            title: "System Location Changed",
-                            message: "Screenshots will now save to: \(shortenPath(selectedURL.path))"
-                        )
-                    } catch {
-                        showAlert(
-                            title: "Error",
-                            message: "Failed to restart watcher: \(error.localizedDescription)"
-                        )
-                    }
-                } else {
-                    showAlert(
-                        title: "System Location Changed",
-                        message: "System screenshot location updated to:\n\(selectedURL.path)\n\nNew screenshots (⌘⇧4) will save here.\n\nStart the watcher to begin monitoring."
+                        message: "Failed to restart watcher: \(error.localizedDescription)"
                     )
                 }
-
-                os_log("System screenshot location changed to: %{public}@",
-                       log: .default, type: .info, selectedURL.path)
+            } else {
+                showAlert(
+                    title: "System Location Changed",
+                    message: "System screenshot location updated to:\n\(selectedURL.path)\n\nNew screenshots (⌘⇧4) will save here.\n\nStart the watcher to begin monitoring."
+                )
             }
+
+            os_log("System screenshot location changed to: %{public}@",
+                   log: .default, type: .info, selectedURL.path)
         }
     }
 
@@ -435,6 +435,7 @@ class MenuBarController: NSObject {
     // MARK: - Screenshot Settings Actions
 
     /// Toggle show thumbnail preview
+    @MainActor
     @objc private func toggleShowThumbnail() {
         let currentState = showThumbnailMenuItem.state == .on
         let newState = !currentState
@@ -461,6 +462,7 @@ class MenuBarController: NSObject {
     }
 
     /// Toggle include cursor in screenshots
+    @MainActor
     @objc private func toggleIncludeCursor() {
         let currentState = includeCursorMenuItem.state == .on
         let newState = !currentState
@@ -487,6 +489,7 @@ class MenuBarController: NSObject {
     }
 
     /// Toggle disable shadow on window screenshots
+    @MainActor
     @objc private func toggleDisableShadow() {
         let currentState = disableShadowMenuItem.state == .on
         let newState = !currentState
@@ -513,6 +516,7 @@ class MenuBarController: NSObject {
     }
 
     /// Set screenshot format
+    @MainActor
     @objc private func setScreenshotFormat(_ sender: NSMenuItem) {
         guard let format = sender.representedObject as? ScreenshotFormat else {
             return
@@ -542,42 +546,41 @@ class MenuBarController: NSObject {
     }
 
     /// Reset all screenshot settings to macOS defaults
+    @MainActor
     @objc private func resetScreenshotSettings() {
-        Task { @MainActor in
-            let alert = NSAlert()
-            alert.messageText = "Reset Screenshot Settings?"
-            alert.informativeText = "This will reset all screenshot preferences to macOS defaults:\n• Show thumbnail preview: ON\n• Include mouse pointer: OFF\n• Window shadow: ON\n• Format: PNG"
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "Reset")
-            alert.addButton(withTitle: "Cancel")
+        let alert = NSAlert()
+        alert.messageText = "Reset Screenshot Settings?"
+        alert.informativeText = "This will reset all screenshot preferences to macOS defaults:\n• Show thumbnail preview: ON\n• Include mouse pointer: OFF\n• Window shadow: ON\n• Format: PNG"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Reset")
+        alert.addButton(withTitle: "Cancel")
 
-            NSApp.activate(ignoringOtherApps: true)
-            let response = alert.runModal()
+        NSApp.activate(ignoringOtherApps: true)
+        let response = alert.runModal()
 
-            if response == .alertFirstButtonReturn {
-                guard detector.resetToDefaults() else {
-                    showAlert(
-                        title: "Error",
-                        message: "Failed to reset screenshot settings"
-                    )
-                    return
-                }
-
-                // Update menu items to reflect defaults
-                let defaults = ScreenshotPreferences.defaults
-                showThumbnailMenuItem.state = defaults.showThumbnail ? .on : .off
-                includeCursorMenuItem.state = defaults.includeCursor ? .on : .off
-                disableShadowMenuItem.state = defaults.disableShadow ? .on : .off
-
-                for (formatKey, menuItem) in formatMenuItems {
-                    menuItem.state = (formatKey == defaults.format) ? .on : .off
-                }
-
-                showNotification(
-                    title: "Settings Reset",
-                    message: "All screenshot preferences restored to defaults"
+        if response == .alertFirstButtonReturn {
+            guard detector.resetToDefaults() else {
+                showAlert(
+                    title: "Error",
+                    message: "Failed to reset screenshot settings"
                 )
+                return
             }
+
+            // Update menu items to reflect defaults
+            let defaults = ScreenshotPreferences.defaults
+            showThumbnailMenuItem.state = defaults.showThumbnail ? .on : .off
+            includeCursorMenuItem.state = defaults.includeCursor ? .on : .off
+            disableShadowMenuItem.state = defaults.disableShadow ? .on : .off
+
+            for (formatKey, menuItem) in formatMenuItems {
+                menuItem.state = (formatKey == defaults.format) ? .on : .off
+            }
+
+            showNotification(
+                title: "Settings Reset",
+                message: "All screenshot preferences restored to defaults"
+            )
         }
     }
 
@@ -595,6 +598,7 @@ class MenuBarController: NSObject {
     }
 
     /// Show macOS notification using modern UserNotifications framework
+    @MainActor
     private func showNotification(title: String, message: String) {
         let content = UNMutableNotificationContent()
         content.title = title

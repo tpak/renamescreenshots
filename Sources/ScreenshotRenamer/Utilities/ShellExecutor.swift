@@ -120,16 +120,20 @@ class ShellExecutor {
         process.standardOutput = outputPipe
         process.standardError = errorPipe
 
+        // Use semaphore for timeout instead of polling
+        let semaphore = DispatchSemaphore(value: 0)
+
+        process.terminationHandler = { _ in
+            semaphore.signal()
+        }
+
         try process.run()
 
         // Wait for completion with timeout
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline {
-            Thread.sleep(forTimeInterval: 0.1)
-        }
+        let result = semaphore.wait(timeout: .now() + timeout)
 
-        // Force terminate if still running
-        if process.isRunning {
+        // Check if timed out
+        if result == .timedOut {
             process.terminate()
             throw ScreenshotError.commandFailed
         }
