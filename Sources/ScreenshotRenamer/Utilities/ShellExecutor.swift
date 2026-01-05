@@ -58,6 +58,31 @@ class ShellExecutor {
         }
     }
 
+    /// Execute `defaults write` command for boolean values
+    /// - Parameters:
+    ///   - domain: The defaults domain (e.g., "com.apple.screencapture")
+    ///   - key: The preference key (e.g., "show-thumbnail")
+    ///   - value: Boolean value to write
+    /// - Returns: True if write succeeded, false otherwise
+    static func writeBoolDefaults(domain: String, key: String, value: Bool) -> Bool {
+        do {
+            _ = try runCommand(
+                executable: "/usr/bin/defaults",
+                arguments: ["write", domain, key, "-bool", value ? "true" : "false"],
+                timeout: 5.0
+            )
+            os_log("Successfully wrote bool defaults %{public}@.%{public}@ = %{public}@",
+                   log: .default, type: .info,
+                   domain, key, value ? "true" : "false")
+            return true
+        } catch {
+            os_log("Failed to write bool defaults %{public}@.%{public}@: %{public}@",
+                   log: .default, type: .error,
+                   domain, key, error.localizedDescription)
+            return false
+        }
+    }
+
     /// Restart SystemUIServer to apply screenshot location changes
     /// - Returns: True if restart succeeded, false otherwise
     static func restartSystemUIServer() -> Bool {

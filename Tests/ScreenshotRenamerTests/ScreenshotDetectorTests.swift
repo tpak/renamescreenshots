@@ -85,4 +85,200 @@ class ScreenshotDetectorTests: XCTestCase {
             "Should fall back to valid location"
         )
     }
+
+    // MARK: - Advanced Preferences Tests
+
+    func testDetectPreferences() {
+        let detector = ScreenshotDetector()
+        let prefs = detector.detectPreferences()
+
+        // Verify we got preferences
+        XCTAssertNotNil(prefs, "Preferences should not be nil")
+
+        // Format should be one of the valid values
+        let validFormats: [ScreenshotFormat] = [.png, .jpg, .pdf, .tiff]
+        XCTAssertTrue(
+            validFormats.contains(prefs.format),
+            "Format should be one of: png, jpg, pdf, tiff"
+        )
+    }
+
+    func testSetShowThumbnail() {
+        let detector = ScreenshotDetector()
+
+        // Store original value
+        let originalPrefs = detector.detectPreferences()
+
+        // Toggle to opposite value
+        let newValue = !originalPrefs.showThumbnail
+        let success = detector.setShowThumbnail(newValue)
+        XCTAssertTrue(success, "Setting show thumbnail should succeed")
+
+        // Read back and verify
+        let updatedPrefs = detector.detectPreferences()
+        XCTAssertEqual(
+            updatedPrefs.showThumbnail,
+            newValue,
+            "Show thumbnail should be updated"
+        )
+
+        // Restore original value
+        _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
+    }
+
+    func testSetIncludeCursor() {
+        let detector = ScreenshotDetector()
+
+        // Store original value
+        let originalPrefs = detector.detectPreferences()
+
+        // Toggle to opposite value
+        let newValue = !originalPrefs.includeCursor
+        let success = detector.setIncludeCursor(newValue)
+        XCTAssertTrue(success, "Setting include cursor should succeed")
+
+        // Read back and verify
+        let updatedPrefs = detector.detectPreferences()
+        XCTAssertEqual(
+            updatedPrefs.includeCursor,
+            newValue,
+            "Include cursor should be updated"
+        )
+
+        // Restore original value
+        _ = detector.setIncludeCursor(originalPrefs.includeCursor)
+    }
+
+    func testSetDisableShadow() {
+        let detector = ScreenshotDetector()
+
+        // Store original value
+        let originalPrefs = detector.detectPreferences()
+
+        // Toggle to opposite value
+        let newValue = !originalPrefs.disableShadow
+        let success = detector.setDisableShadow(newValue)
+        XCTAssertTrue(success, "Setting disable shadow should succeed")
+
+        // Read back and verify
+        let updatedPrefs = detector.detectPreferences()
+        XCTAssertEqual(
+            updatedPrefs.disableShadow,
+            newValue,
+            "Disable shadow should be updated"
+        )
+
+        // Restore original value
+        _ = detector.setDisableShadow(originalPrefs.disableShadow)
+    }
+
+    func testSetFormat() {
+        let detector = ScreenshotDetector()
+
+        // Store original format
+        let originalPrefs = detector.detectPreferences()
+
+        // Try each format
+        let testFormats: [ScreenshotFormat] = [.jpg, .pdf, .tiff, .png]
+
+        for format in testFormats {
+            let success = detector.setFormat(format)
+            XCTAssertTrue(success, "Setting format to \(format.rawValue) should succeed")
+
+            // Read back and verify
+            let updatedPrefs = detector.detectPreferences()
+            XCTAssertEqual(
+                updatedPrefs.format,
+                format,
+                "Format should be updated to \(format.rawValue)"
+            )
+        }
+
+        // Restore original format
+        _ = detector.setFormat(originalPrefs.format)
+    }
+
+    func testResetToDefaults() {
+        let detector = ScreenshotDetector()
+
+        // Store original preferences
+        let originalPrefs = detector.detectPreferences()
+
+        // Change all settings to non-default values
+        _ = detector.setShowThumbnail(false)
+        _ = detector.setIncludeCursor(true)
+        _ = detector.setDisableShadow(true)
+        _ = detector.setFormat(.jpg)
+
+        // Verify they were changed
+        let changedPrefs = detector.detectPreferences()
+        XCTAssertFalse(changedPrefs.showThumbnail)
+        XCTAssertTrue(changedPrefs.includeCursor)
+        XCTAssertTrue(changedPrefs.disableShadow)
+        XCTAssertEqual(changedPrefs.format, .jpg)
+
+        // Reset to defaults
+        let success = detector.resetToDefaults()
+        XCTAssertTrue(success, "Reset to defaults should succeed")
+
+        // Verify defaults
+        let resetPrefs = detector.detectPreferences()
+        let expectedDefaults = ScreenshotPreferences.defaults
+
+        XCTAssertEqual(
+            resetPrefs.showThumbnail,
+            expectedDefaults.showThumbnail,
+            "Show thumbnail should be reset to default (true)"
+        )
+        XCTAssertEqual(
+            resetPrefs.includeCursor,
+            expectedDefaults.includeCursor,
+            "Include cursor should be reset to default (false)"
+        )
+        XCTAssertEqual(
+            resetPrefs.disableShadow,
+            expectedDefaults.disableShadow,
+            "Disable shadow should be reset to default (false)"
+        )
+        XCTAssertEqual(
+            resetPrefs.format,
+            expectedDefaults.format,
+            "Format should be reset to default (png)"
+        )
+
+        // Restore original preferences
+        _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
+        _ = detector.setIncludeCursor(originalPrefs.includeCursor)
+        _ = detector.setDisableShadow(originalPrefs.disableShadow)
+        _ = detector.setFormat(originalPrefs.format)
+    }
+
+    func testPreferencesPersistence() {
+        let detector = ScreenshotDetector()
+
+        // Store original
+        let originalPrefs = detector.detectPreferences()
+
+        // Set specific values
+        _ = detector.setShowThumbnail(false)
+        _ = detector.setIncludeCursor(true)
+
+        // Create new detector instance (simulates app restart)
+        let detector2 = ScreenshotDetector()
+        let persistedPrefs = detector2.detectPreferences()
+
+        // Verify values persisted
+        XCTAssertFalse(
+            persistedPrefs.showThumbnail,
+            "Show thumbnail should persist across detector instances"
+        )
+        XCTAssertTrue(
+            persistedPrefs.includeCursor,
+            "Include cursor should persist across detector instances"
+        )
+
+        // Restore original
+        _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
+        _ = detector.setIncludeCursor(originalPrefs.includeCursor)
+    }
 }

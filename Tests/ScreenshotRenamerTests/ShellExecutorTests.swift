@@ -65,6 +65,55 @@ class ShellExecutorTests: XCTestCase {
         process.waitUntilExit()
     }
 
+    func testWriteBoolDefaults() {
+        // Create a temporary test domain to avoid affecting system settings
+        let testDomain = "com.tirpak.screenshot-renamer.test"
+        let testKey = "testBoolKey"
+
+        // Write true
+        let writeTrue = ShellExecutor.writeBoolDefaults(
+            domain: testDomain,
+            key: testKey,
+            value: true
+        )
+        XCTAssertTrue(writeTrue, "Writing bool defaults (true) should succeed")
+
+        // Read it back
+        let readTrue = ShellExecutor.readDefaults(
+            domain: testDomain,
+            key: testKey
+        )
+        XCTAssertTrue(
+            readTrue == "1" || readTrue?.lowercased() == "true",
+            "Read value should be true (1 or true)"
+        )
+
+        // Write false
+        let writeFalse = ShellExecutor.writeBoolDefaults(
+            domain: testDomain,
+            key: testKey,
+            value: false
+        )
+        XCTAssertTrue(writeFalse, "Writing bool defaults (false) should succeed")
+
+        // Read it back
+        let readFalse = ShellExecutor.readDefaults(
+            domain: testDomain,
+            key: testKey
+        )
+        XCTAssertTrue(
+            readFalse == "0" || readFalse?.lowercased() == "false",
+            "Read value should be false (0 or false)"
+        )
+
+        // Cleanup: delete the test key
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+        process.arguments = ["delete", testDomain, testKey]
+        try? process.run()
+        process.waitUntilExit()
+    }
+
     func testRestartSystemUIServer() {
         // Note: This test actually restarts SystemUIServer
         // The menu bar will briefly flicker, which is expected behavior

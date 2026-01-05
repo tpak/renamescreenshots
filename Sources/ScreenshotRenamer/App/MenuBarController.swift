@@ -24,9 +24,19 @@ class MenuBarController: NSObject {
     private var locationMenuItem: NSMenuItem!
     private var prefixMenuItem: NSMenuItem!
 
+    // Settings submenu items
+    private var showThumbnailMenuItem: NSMenuItem!
+    private var includeCursorMenuItem: NSMenuItem!
+    private var disableShadowMenuItem: NSMenuItem!
+    private var formatMenuItems: [ScreenshotFormat: NSMenuItem] = [:]
+
     override init() {
         super.init()
         print("📋 MenuBarController initializing...")
+
+        // Initialize detector first (needed by buildMenu)
+        detector = ScreenshotDetector()
+
         setupMenuBar()
         requestNotificationPermissions()
         loadSettings()
@@ -106,6 +116,16 @@ class MenuBarController: NSObject {
         changeLocationItem.target = self
         menu.addItem(changeLocationItem)
 
+        // Screenshot Settings submenu
+        let settingsSubmenu = buildSettingsSubmenu()
+        let settingsMenuItem = NSMenuItem(
+            title: "Screenshot Settings",
+            action: nil,
+            keyEquivalent: ""
+        )
+        settingsMenuItem.submenu = settingsSubmenu
+        menu.addItem(settingsMenuItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // Info items (non-clickable)
@@ -137,10 +157,87 @@ class MenuBarController: NSObject {
         statusItem.menu = menu
     }
 
+    /// Build the screenshot settings submenu
+    private func buildSettingsSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+
+        // Detect current preferences
+        let prefs = detector.detectPreferences()
+
+        // Show Thumbnail Preview toggle
+        showThumbnailMenuItem = NSMenuItem(
+            title: "Show Thumbnail Preview",
+            action: #selector(toggleShowThumbnail),
+            keyEquivalent: ""
+        )
+        showThumbnailMenuItem.target = self
+        showThumbnailMenuItem.state = prefs.showThumbnail ? .on : .off
+        submenu.addItem(showThumbnailMenuItem)
+
+        // Include Mouse Pointer toggle
+        includeCursorMenuItem = NSMenuItem(
+            title: "Include Mouse Pointer",
+            action: #selector(toggleIncludeCursor),
+            keyEquivalent: ""
+        )
+        includeCursorMenuItem.target = self
+        includeCursorMenuItem.state = prefs.includeCursor ? .on : .off
+        submenu.addItem(includeCursorMenuItem)
+
+        // Disable Window Shadow toggle
+        disableShadowMenuItem = NSMenuItem(
+            title: "Disable Window Shadow",
+            action: #selector(toggleDisableShadow),
+            keyEquivalent: ""
+        )
+        disableShadowMenuItem.target = self
+        disableShadowMenuItem.state = prefs.disableShadow ? .on : .off
+        submenu.addItem(disableShadowMenuItem)
+
+        submenu.addItem(NSMenuItem.separator())
+
+        // Screenshot Format submenu
+        let formatSubmenu = NSMenu()
+        let formats: [ScreenshotFormat] = [.png, .jpg, .pdf, .tiff]
+
+        for format in formats {
+            let formatItem = NSMenuItem(
+                title: format.rawValue.uppercased(),
+                action: #selector(setScreenshotFormat(_:)),
+                keyEquivalent: ""
+            )
+            formatItem.target = self
+            formatItem.representedObject = format
+            formatItem.state = (format == prefs.format) ? .on : .off
+            formatSubmenu.addItem(formatItem)
+            formatMenuItems[format] = formatItem
+        }
+
+        let formatMenuItem = NSMenuItem(
+            title: "Screenshot Format",
+            action: nil,
+            keyEquivalent: ""
+        )
+        formatMenuItem.submenu = formatSubmenu
+        submenu.addItem(formatMenuItem)
+
+        submenu.addItem(NSMenuItem.separator())
+
+        // Reset to Defaults
+        let resetItem = NSMenuItem(
+            title: "Reset to Defaults",
+            action: #selector(resetScreenshotSettings),
+            keyEquivalent: ""
+        )
+        resetItem.target = self
+        submenu.addItem(resetItem)
+
+        return submenu
+    }
+
     /// Load screenshot settings from macOS
     private func loadSettings() {
         print("⚙️  Loading settings...")
-        detector = ScreenshotDetector()
         settings = detector.detectSettings()
         print("✅ Settings loaded: \(settings.location.path)")
         print("✅ Prefix: \(settings.prefix)")
@@ -333,6 +430,155 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
+    }
+
+    // MARK: - Screenshot Settings Actions
+
+    /// Toggle show thumbnail preview
+    @objc private func toggleShowThumbnail() {
+        let currentState = showThumbnailMenuItem.state == .on
+        let newState = !currentState
+
+        guard detector.setShowThumbnail(newState) else {
+            Task { @MainActor in
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change thumbnail preview setting"
+                )
+            }
+            return
+        }
+
+        showThumbnailMenuItem.state = newState ? .on : .off
+        _ = ShellExecutor.restartSystemUIServer()
+
+        showNotification(
+            title: "Thumbnail Preview \(newState ? "Enabled" : "Disabled")",
+            message: newState
+                ? "Screenshots will show preview thumbnail"
+                : "Screenshots will save immediately"
+        )
+    }
+
+    /// Toggle include cursor in screenshots
+    @objc private func toggleIncludeCursor() {
+        let currentState = includeCursorMenuItem.state == .on
+        let newState = !currentState
+
+        guard detector.setIncludeCursor(newState) else {
+            Task { @MainActor in
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change cursor setting"
+                )
+            }
+            return
+        }
+
+        includeCursorMenuItem.state = newState ? .on : .off
+        _ = ShellExecutor.restartSystemUIServer()
+
+        showNotification(
+            title: "Mouse Pointer \(newState ? "Enabled" : "Disabled")",
+            message: newState
+                ? "Screenshots will include the mouse pointer"
+                : "Screenshots will not include the mouse pointer"
+        )
+    }
+
+    /// Toggle disable shadow on window screenshots
+    @objc private func toggleDisableShadow() {
+        let currentState = disableShadowMenuItem.state == .on
+        let newState = !currentState
+
+        guard detector.setDisableShadow(newState) else {
+            Task { @MainActor in
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change shadow setting"
+                )
+            }
+            return
+        }
+
+        disableShadowMenuItem.state = newState ? .on : .off
+        _ = ShellExecutor.restartSystemUIServer()
+
+        showNotification(
+            title: "Window Shadow \(newState ? "Disabled" : "Enabled")",
+            message: newState
+                ? "Window screenshots will not have drop shadow"
+                : "Window screenshots will have drop shadow"
+        )
+    }
+
+    /// Set screenshot format
+    @objc private func setScreenshotFormat(_ sender: NSMenuItem) {
+        guard let format = sender.representedObject as? ScreenshotFormat else {
+            return
+        }
+
+        guard detector.setFormat(format) else {
+            Task { @MainActor in
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change screenshot format"
+                )
+            }
+            return
+        }
+
+        // Update checkmarks
+        for (formatKey, menuItem) in formatMenuItems {
+            menuItem.state = (formatKey == format) ? .on : .off
+        }
+
+        _ = ShellExecutor.restartSystemUIServer()
+
+        showNotification(
+            title: "Format Changed",
+            message: "Screenshots will now save as \(format.rawValue.uppercased())"
+        )
+    }
+
+    /// Reset all screenshot settings to macOS defaults
+    @objc private func resetScreenshotSettings() {
+        Task { @MainActor in
+            let alert = NSAlert()
+            alert.messageText = "Reset Screenshot Settings?"
+            alert.informativeText = "This will reset all screenshot preferences to macOS defaults:\n• Show thumbnail preview: ON\n• Include mouse pointer: OFF\n• Window shadow: ON\n• Format: PNG"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Reset")
+            alert.addButton(withTitle: "Cancel")
+
+            NSApp.activate(ignoringOtherApps: true)
+            let response = alert.runModal()
+
+            if response == .alertFirstButtonReturn {
+                guard detector.resetToDefaults() else {
+                    showAlert(
+                        title: "Error",
+                        message: "Failed to reset screenshot settings"
+                    )
+                    return
+                }
+
+                // Update menu items to reflect defaults
+                let defaults = ScreenshotPreferences.defaults
+                showThumbnailMenuItem.state = defaults.showThumbnail ? .on : .off
+                includeCursorMenuItem.state = defaults.includeCursor ? .on : .off
+                disableShadowMenuItem.state = defaults.disableShadow ? .on : .off
+
+                for (formatKey, menuItem) in formatMenuItems {
+                    menuItem.state = (formatKey == defaults.format) ? .on : .off
+                }
+
+                showNotification(
+                    title: "Settings Reset",
+                    message: "All screenshot preferences restored to defaults"
+                )
+            }
+        }
     }
 
     // MARK: - User Notifications

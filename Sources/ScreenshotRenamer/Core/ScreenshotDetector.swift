@@ -47,6 +47,134 @@ class ScreenshotDetector {
         return success
     }
 
+    // MARK: - Advanced Preferences
+
+    /// Detect advanced screenshot preferences
+    /// - Returns: ScreenshotPreferences with all advanced settings
+    func detectPreferences() -> ScreenshotPreferences {
+        let showThumbnail = detectShowThumbnail()
+        let includeCursor = detectIncludeCursor()
+        let disableShadow = detectDisableShadow()
+        let format = detectFormat()
+
+        return ScreenshotPreferences(
+            showThumbnail: showThumbnail,
+            includeCursor: includeCursor,
+            disableShadow: disableShadow,
+            format: format
+        )
+    }
+
+    /// Set show thumbnail preference
+    /// - Parameter enabled: True to show thumbnail preview, false for immediate save
+    /// - Returns: True if successful
+    func setShowThumbnail(_ enabled: Bool) -> Bool {
+        return ShellExecutor.writeBoolDefaults(
+            domain: "com.apple.screencapture",
+            key: "show-thumbnail",
+            value: enabled
+        )
+    }
+
+    /// Set include cursor preference
+    /// - Parameter enabled: True to include mouse pointer in screenshots
+    /// - Returns: True if successful
+    func setIncludeCursor(_ enabled: Bool) -> Bool {
+        return ShellExecutor.writeBoolDefaults(
+            domain: "com.apple.screencapture",
+            key: "show-cursor",
+            value: enabled
+        )
+    }
+
+    /// Set disable shadow preference
+    /// - Parameter disabled: True to disable drop shadow on window screenshots
+    /// - Returns: True if successful
+    func setDisableShadow(_ disabled: Bool) -> Bool {
+        return ShellExecutor.writeBoolDefaults(
+            domain: "com.apple.screencapture",
+            key: "disable-shadow",
+            value: disabled
+        )
+    }
+
+    /// Set screenshot format
+    /// - Parameter format: Format for screenshots (png, jpg, pdf, tiff)
+    /// - Returns: True if successful
+    func setFormat(_ format: ScreenshotFormat) -> Bool {
+        return ShellExecutor.writeDefaults(
+            domain: "com.apple.screencapture",
+            key: "type",
+            value: format.rawValue
+        )
+    }
+
+    /// Reset all screenshot preferences to macOS defaults
+    /// - Returns: True if all resets successful
+    func resetToDefaults() -> Bool {
+        let defaults = ScreenshotPreferences.defaults
+
+        let results = [
+            setShowThumbnail(defaults.showThumbnail),
+            setIncludeCursor(defaults.includeCursor),
+            setDisableShadow(defaults.disableShadow),
+            setFormat(defaults.format)
+        ]
+
+        let success = results.allSatisfy { $0 }
+
+        if success {
+            // Restart SystemUIServer to apply all changes
+            _ = ShellExecutor.restartSystemUIServer()
+            os_log("Reset all screenshot preferences to defaults",
+                   log: .default, type: .info)
+        }
+
+        return success
+    }
+
+    // MARK: - Advanced Preference Detection
+
+    private func detectShowThumbnail() -> Bool {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "show-thumbnail"
+        ) else {
+            return true // Default is true
+        }
+        return output == "1" || output.lowercased() == "true"
+    }
+
+    private func detectIncludeCursor() -> Bool {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "show-cursor"
+        ) else {
+            return false // Default is false
+        }
+        return output == "1" || output.lowercased() == "true"
+    }
+
+    private func detectDisableShadow() -> Bool {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "disable-shadow"
+        ) else {
+            return false // Default is false (shadows enabled)
+        }
+        return output == "1" || output.lowercased() == "true"
+    }
+
+    private func detectFormat() -> ScreenshotFormat {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "type"
+        ) else {
+            return .png // Default is PNG
+        }
+        return ScreenshotFormat(rawValue: output.lowercased()) ?? .png
+    }
+
     /// Detect screenshot save location
     /// Reads from macOS system defaults, falls back to ~/Desktop
     private func detectLocation() -> URL {

@@ -12,8 +12,10 @@ macOS screenshot names don't sort chronologically in Finder due to 12-hour time 
 
 **Features:**
 - 📷 Menu bar app - lives in your status bar
-- 🔄 Auto-rename - watches for new screenshots
-- ⚡ Instant startup - native Swift binary (224KB)
+- 🔄 Auto-rename - watches for new screenshots in real-time
+- ⚙️ Settings control - manage all macOS screenshot preferences
+- 📁 Location changer - set system screenshot save location
+- ⚡ Instant startup - native Swift binary (264KB)
 - 🎯 Auto-detect - reads your macOS screenshot settings
 - 🔒 Secure - full path validation and sandboxing support
 
@@ -30,7 +32,7 @@ macOS screenshot names don't sort chronologically in Finder due to 12-hour time 
 ./Scripts/build-app.sh
 ```
 
-This creates `ScreenshotRenamer.app` (224KB) in seconds.
+This creates `ScreenshotRenamer.app` (264KB) in seconds.
 
 ### 2. Install
 
@@ -74,11 +76,35 @@ codesign --force --deep --sign - ScreenshotRenamer.app
 
 Once installed, the camera icon 📷 appears in your menu bar with these options:
 
-- **Stop/Start Watcher** - Toggle automatic renaming (on by default)
-- **Quick Rename...** - Manually rename existing screenshots
-- **Location** - Shows your screenshot save directory
-- **Prefix** - Shows detected screenshot prefix
-- **Quit** - Exit the app
+### Main Menu
+
+- **Stop/Start Watcher** - Toggle automatic renaming (auto-starts on launch)
+- **Quick Rename...** - Manually rename existing screenshots in current location
+- **Change Location...** - Set system screenshot save location (changes where ⌘⇧4 saves)
+- **Screenshot Settings** - Configure macOS screenshot preferences (see below)
+- **Location** - Shows current screenshot save directory
+- **Prefix** - Shows detected screenshot filename prefix
+- **Quit** - Exit the app (⌘Q)
+
+### Screenshot Settings
+
+Control all macOS screenshot preferences from one menu:
+
+**Toggle Options:**
+- **Show Thumbnail Preview** - Enable/disable preview editor after screenshot
+- **Include Mouse Pointer** - Show/hide cursor in screenshots
+- **Disable Window Shadow** - Remove drop shadow from window captures
+
+**Format Options:**
+- **PNG** (default) - Lossless, best quality
+- **JPG** - Smaller file size, compressed
+- **PDF** - Document format
+- **TIFF** - Uncompressed, maximum quality
+
+**Maintenance:**
+- **Reset to Defaults** - Restore all settings to macOS defaults
+
+All settings apply system-wide and persist across app restarts. The menu bar may briefly flicker when applying settings (SystemUIServer restart).
 
 ### Auto-Start on Login
 
@@ -116,12 +142,27 @@ launchctl load ~/Library/LaunchAgents/com.tirpak.screenshot-renamer.plist
 
 ## Advanced Features
 
-### Auto-Detection
+### System Integration
 
-The app automatically detects your macOS screenshot settings:
+**Change Screenshot Location:**
+The app can change your system screenshot save location, affecting all screenshot operations:
+- Click "Change Location..." to open folder picker
+- Select any folder (creates if needed)
+- System preference updates automatically
+- Watcher switches to new location immediately
+
+This modifies the same setting as:
 ```bash
-defaults read com.apple.screencapture location  # Where screenshots save
-defaults read com.apple.screencapture name      # Filename prefix
+defaults write com.apple.screencapture location "/path/to/folder"
+```
+
+**Auto-Detection:**
+The app automatically detects your current macOS screenshot settings:
+```bash
+defaults read com.apple.screencapture location        # Where screenshots save
+defaults read com.apple.screencapture name            # Filename prefix
+defaults read com.apple.screencapture show-thumbnail  # Preview enabled
+defaults read com.apple.screencapture type            # File format (png/jpg/pdf/tiff)
 ```
 
 ### Custom Prefix Support
@@ -130,11 +171,33 @@ If you've customized your screenshot name in System Settings, the app preserves 
 - **macOS default:** "Screenshot" → "screenshot"
 - **Custom prefix:** "MyScreenshot" → "myscreenshot"
 
-### Sequential Screenshots
+### Duplicate Handling
 
-Handles rapid screenshots with sequence numbers:
-- `Screenshot 2024-01-03 at 1.23.45 PM 1.png` → `screenshot 2024-01-03 at 13.23.45 1.png`
-- `Screenshot 2024-01-03 at 1.23.45 PM 2.png` → `screenshot 2024-01-03 at 13.23.45 2.png`
+Handles rapid screenshots with identical timestamps by appending sequence numbers:
+- `Screenshot 2024-01-03 at 1.23.45 PM.png` → `screenshot 2024-01-03 at 13.23.45.png`
+- Second screenshot with same timestamp → `screenshot 2024-01-03 at 13.23.45 1.png`
+- Third screenshot → `screenshot 2024-01-03 at 13.23.45 2.png`
+
+Supports up to 999 duplicates, then falls back to Unix timestamp.
+
+### Screenshot Settings Management
+
+The app provides a unified interface for all macOS screenshot settings that are normally scattered across System Settings and terminal commands:
+
+**Settings Managed:**
+- `com.apple.screencapture location` - Save location
+- `com.apple.screencapture name` - Filename prefix
+- `com.apple.screencapture show-thumbnail` - Preview editor
+- `com.apple.screencapture show-cursor` - Mouse pointer
+- `com.apple.screencapture disable-shadow` - Window shadow
+- `com.apple.screencapture type` - File format (png/jpg/pdf/tiff)
+
+**Benefits:**
+- No need to remember terminal commands
+- Visual feedback with checkmarks
+- Instant notifications on changes
+- Settings persist across system restarts
+- One-click reset to defaults
 
 ### Security
 
@@ -151,9 +214,12 @@ Handles rapid screenshots with sequence numbers:
 swift test
 ```
 
-All 25 unit tests cover:
+All 45 unit tests cover:
 - Pattern matching (13 tests)
 - File validation (12 tests)
+- Screenshot detection (10 tests)
+- Shell command execution (5 tests)
+- Screenshot renaming with duplicates (5 tests)
 
 ### Project Structure
 
@@ -163,22 +229,23 @@ All 25 unit tests cover:
 │   └── ScreenshotRenamer/
 │       ├── App/
 │       │   ├── AppDelegate.swift         # App lifecycle
-│       │   ├── MenuBarController.swift   # Menu bar UI
+│       │   ├── MenuBarController.swift   # Menu bar UI and settings
 │       │   └── main.swift                # Entry point
 │       ├── Core/
-│       │   ├── ScreenshotDetector.swift  # Settings detection
-│       │   ├── ScreenshotRenamer.swift   # Rename logic
+│       │   ├── ScreenshotDetector.swift  # Settings detection and modification
+│       │   ├── ScreenshotRenamer.swift   # Rename logic with duplicate handling
 │       │   ├── PatternMatcher.swift      # Regex matching
-│       │   └── FileValidator.swift       # Security
+│       │   └── FileValidator.swift       # Security validation
 │       ├── FileWatcher/
-│       │   └── ScreenshotWatcher.swift   # FSEvents watcher
+│       │   └── ScreenshotWatcher.swift   # FSEvents file monitoring
 │       ├── Models/
-│       │   ├── ScreenshotSettings.swift
-│       │   ├── RenameResult.swift
-│       │   ├── ScreenshotMatch.swift
-│       │   └── ScreenshotError.swift
+│       │   ├── ScreenshotSettings.swift      # Location and prefix
+│       │   ├── ScreenshotPreferences.swift   # Advanced settings (format, thumbnail, etc)
+│       │   ├── RenameResult.swift            # Rename operation results
+│       │   ├── ScreenshotMatch.swift         # Pattern match data
+│       │   └── ScreenshotError.swift         # Error types
 │       ├── Utilities/
-│       │   └── ShellExecutor.swift       # Shell commands
+│       │   └── ShellExecutor.swift       # Shell command execution
 │       └── Resources/
 │           └── Info.plist                # App metadata
 ├── Tests/
@@ -245,12 +312,13 @@ rm ~/Library/LaunchAgents/com.tirpak.screenshot-renamer.plist
 ## Technical Details
 
 - **Language:** Swift 5.7+
-- **Frameworks:** AppKit, CoreServices (FSEvents), Foundation
+- **Frameworks:** AppKit, CoreServices (FSEvents), Foundation, UserNotifications
 - **Build System:** Swift Package Manager
-- **Binary Size:** 224KB (release build)
+- **Binary Size:** 264KB (release build)
 - **Memory Usage:** ~20MB at runtime
 - **Startup Time:** Instant (<100ms)
-- **Tests:** 25 unit tests, 100% core coverage
+- **Tests:** 45 unit tests covering all core functionality
+- **macOS APIs:** NSStatusBar, NSMenu, FSEvents, defaults system
 
 ## Contributing
 
@@ -284,10 +352,11 @@ Originally built in Python with rumps, this native Swift rewrite offers:
 | Feature | Python | Swift |
 |---------|--------|-------|
 | **Startup** | 1-2 seconds | Instant |
-| **Size** | ~100MB | 224KB |
+| **Size** | ~100MB | 264KB |
 | **Dependencies** | pip, rumps, Flask | None |
 | **Performance** | Good | Excellent |
 | **Distribution** | pip install | .app / .dmg |
 | **Integration** | Good | Native |
+| **Settings UI** | Terminal commands | Native menu |
 
-The Swift version provides a better user experience while maintaining 100% feature parity.
+The Swift version provides a superior user experience with native macOS integration and comprehensive settings control.
