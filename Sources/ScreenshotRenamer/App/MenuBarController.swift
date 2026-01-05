@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import UserNotifications
 import os.log
 
 /// Controls the menu bar icon and menu
@@ -27,6 +28,7 @@ class MenuBarController: NSObject {
         super.init()
         print("📋 MenuBarController initializing...")
         setupMenuBar()
+        requestNotificationPermissions()
         loadSettings()
         autoStartWatcher()
         print("📋 MenuBarController initialized")
@@ -335,13 +337,38 @@ class MenuBarController: NSObject {
 
     // MARK: - User Notifications
 
-    /// Show macOS notification
+    /// Request notification permissions
+    private func requestNotificationPermissions() {
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if let error = error {
+                os_log("Notification permission error: %{public}@",
+                       log: .default, type: .debug, error.localizedDescription)
+            }
+        }
+    }
+
+    /// Show macOS notification using modern UserNotifications framework
     private func showNotification(title: String, message: String) {
-        let notification = NSUserNotification()
-        notification.title = title
-        notification.informativeText = message
-        notification.soundName = nil
-        NSUserNotificationCenter.default.deliver(notification)
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = message
+        content.sound = nil
+
+        // Create request with unique identifier
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil // Deliver immediately
+        )
+
+        // Schedule notification
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                os_log("Failed to show notification: %{public}@",
+                       log: .default, type: .debug, error.localizedDescription)
+            }
+        }
     }
 
     /// Show alert dialog
