@@ -33,6 +33,10 @@ class MenuBarController: NSObject {
     override init() {
         super.init()
         print("📋 MenuBarController initializing...")
+
+        // Initialize detector first (needed by buildMenu)
+        detector = ScreenshotDetector()
+
         setupMenuBar()
         requestNotificationPermissions()
         loadSettings()
@@ -234,7 +238,6 @@ class MenuBarController: NSObject {
     /// Load screenshot settings from macOS
     private func loadSettings() {
         print("⚙️  Loading settings...")
-        detector = ScreenshotDetector()
         settings = detector.detectSettings()
         print("✅ Settings loaded: \(settings.location.path)")
         print("✅ Prefix: \(settings.prefix)")
