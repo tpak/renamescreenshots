@@ -263,7 +263,7 @@ class MenuBarController: NSObject {
         Task { @MainActor in
             let panel = NSOpenPanel()
             panel.title = "Choose Screenshot Folder"
-            panel.message = "Select a folder where screenshots will be saved"
+            panel.message = "Select where system screenshots (⌘⇧4) will be saved"
             panel.canChooseDirectories = true
             panel.canChooseFiles = false
             panel.canCreateDirectories = true
@@ -277,23 +277,34 @@ class MenuBarController: NSObject {
             let response = panel.runModal()
 
             if response == .OK, let selectedURL = panel.url {
-                // Save custom location
-                detector.setCustomLocation(selectedURL)
+                // Change system screenshot location
+                guard detector.setSystemLocation(selectedURL) else {
+                    showAlert(
+                        title: "Error",
+                        message: "Failed to change system screenshot location. Please check permissions."
+                    )
+                    return
+                }
 
-                // Reload settings
+                // Restart SystemUIServer to apply changes
+                _ = ShellExecutor.restartSystemUIServer()
+
+                // Stop watcher before reloading settings
                 let wasRunning = isWatcherRunning
                 if wasRunning {
                     stopWatcher()
                 }
 
+                // Reload settings (will now read from updated system location)
                 loadSettings()
 
+                // Restart watcher with new location
                 if wasRunning {
                     do {
                         try startWatcher()
                         showNotification(
-                            title: "Location Changed",
-                            message: "Now watching: \(shortenPath(selectedURL.path))"
+                            title: "System Location Changed",
+                            message: "Screenshots will now save to: \(shortenPath(selectedURL.path))"
                         )
                     } catch {
                         showAlert(
@@ -303,12 +314,12 @@ class MenuBarController: NSObject {
                     }
                 } else {
                     showAlert(
-                        title: "Location Changed",
-                        message: "Screenshot location updated to:\n\(selectedURL.path)\n\nStart the watcher to begin monitoring."
+                        title: "System Location Changed",
+                        message: "System screenshot location updated to:\n\(selectedURL.path)\n\nNew screenshots (⌘⇧4) will save here.\n\nStart the watcher to begin monitoring."
                     )
                 }
 
-                os_log("Screenshot location changed to: %{public}@",
+                os_log("System screenshot location changed to: %{public}@",
                        log: .default, type: .info, selectedURL.path)
             }
         }

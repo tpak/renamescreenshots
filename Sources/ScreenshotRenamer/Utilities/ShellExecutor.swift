@@ -33,6 +33,51 @@ class ShellExecutor {
         }
     }
 
+    /// Execute `defaults write` command to write macOS preferences
+    /// - Parameters:
+    ///   - domain: The defaults domain (e.g., "com.apple.screencapture")
+    ///   - key: The preference key (e.g., "location")
+    ///   - value: The value to write
+    /// - Returns: True if write succeeded, false otherwise
+    static func writeDefaults(domain: String, key: String, value: String) -> Bool {
+        do {
+            _ = try runCommand(
+                executable: "/usr/bin/defaults",
+                arguments: ["write", domain, key, value],
+                timeout: 5.0
+            )
+            os_log("Successfully wrote defaults %{public}@.%{public}@ = %{public}@",
+                   log: .default, type: .info,
+                   domain, key, value)
+            return true
+        } catch {
+            os_log("Failed to write defaults %{public}@.%{public}@: %{public}@",
+                   log: .default, type: .error,
+                   domain, key, error.localizedDescription)
+            return false
+        }
+    }
+
+    /// Restart SystemUIServer to apply screenshot location changes
+    /// - Returns: True if restart succeeded, false otherwise
+    static func restartSystemUIServer() -> Bool {
+        do {
+            _ = try runCommand(
+                executable: "/usr/bin/killall",
+                arguments: ["SystemUIServer"],
+                timeout: 5.0
+            )
+            os_log("Successfully restarted SystemUIServer",
+                   log: .default, type: .info)
+            return true
+        } catch {
+            os_log("Failed to restart SystemUIServer: %{public}@",
+                   log: .default, type: .debug,
+                   error.localizedDescription)
+            return false
+        }
+    }
+
     /// Run a shell command with timeout
     /// - Parameters:
     ///   - executable: Path to the executable
