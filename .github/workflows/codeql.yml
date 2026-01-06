@@ -12,12 +12,12 @@
 name: "CodeQL Advanced"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # Only run on schedule to avoid blocking development
+  # Swift CodeQL analysis is slow (~15-20 minutes) even for small projects
   schedule:
-    - cron: '17 3 * * 3'
+    - cron: '17 3 * * 3'  # Weekly on Wednesday at 3:17 AM
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   analyze:
