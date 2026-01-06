@@ -5,6 +5,7 @@
 //  Unit tests for screenshot renaming with duplicate handling
 //
 
+// swiftlint:disable force_try
 import XCTest
 @testable import ScreenshotRenamer
 

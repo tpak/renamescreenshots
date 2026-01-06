@@ -5,6 +5,7 @@
 //  Unit tests for screenshot settings detection
 //
 
+// swiftlint:disable force_try
 import XCTest
 @testable import ScreenshotRenamer
 

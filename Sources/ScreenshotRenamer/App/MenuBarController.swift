@@ -11,6 +11,7 @@ import UserNotifications
 import os.log
 
 /// Controls the menu bar icon and menu
+// swiftlint:disable type_body_length
 class MenuBarController: NSObject {
     private var statusItem: NSStatusItem!
     private var watcher: ScreenshotWatcher?

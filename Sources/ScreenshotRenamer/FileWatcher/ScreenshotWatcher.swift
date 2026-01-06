@@ -57,7 +57,7 @@ class ScreenshotWatcher {
         // Create FSEvents stream
         streamRef = FSEventStreamCreate(
             kCFAllocatorDefault,
-            { (streamRef, contextInfo, numEvents, eventPaths, eventFlags, eventIds) in
+            { _, contextInfo, _, eventPaths, _, _ in
                 let watcher = Unmanaged<ScreenshotWatcher>
                     .fromOpaque(contextInfo!)
                     .takeUnretainedValue()
@@ -70,6 +70,7 @@ class ScreenshotWatcher {
                     return
                 }
 
+                // swiftlint:disable:next force_cast
                 let paths = unsafeBitCast(eventPaths, to: NSArray.self) as! [String]
                 watcher.handleFileEvents(paths)
             },
