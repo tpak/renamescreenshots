@@ -125,17 +125,20 @@ class ScreenshotWatcher {
 
                 // Small delay to ensure file is fully written
                 // macOS creates .Screenshot then renames to Screenshot
-                Thread.sleep(forTimeInterval: 0.15)
+                // Use Task.sleep instead of Thread.sleep to avoid blocking
+                Task {
+                    try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
 
-                do {
-                    let result = try self.renamer.renameScreenshots()
-                    if result.renamedFiles > 0 {
-                        os_log("Auto-renamed: %d files",
-                               log: .default, type: .info, result.renamedFiles)
+                    do {
+                        let result = try self.renamer.renameScreenshots()
+                        if result.renamedFiles > 0 {
+                            os_log("Auto-renamed: %d files",
+                                   log: .default, type: .info, result.renamedFiles)
+                        }
+                    } catch {
+                        os_log("Error processing %{public}@: %{public}@",
+                               log: .default, type: .error, filename, error.localizedDescription)
                     }
-                } catch {
-                    os_log("Error processing %{public}@: %{public}@",
-                           log: .default, type: .error, filename, error.localizedDescription)
                 }
             }
         }

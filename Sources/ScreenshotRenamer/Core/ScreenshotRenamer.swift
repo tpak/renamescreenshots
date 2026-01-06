@@ -147,14 +147,27 @@ class ScreenshotRenamer {
         in directory: URL,
         fileManager: FileManager
     ) -> String {
+        // Pre-load directory contents into a Set for O(1) lookup instead of O(n) per iteration
+        let existingFiles: Set<String>
+        do {
+            existingFiles = Set(try fileManager.contentsOfDirectory(atPath: directory.path))
+        } catch {
+            os_log("Failed to read directory contents: %{public}@",
+                   log: .default, type: .error, error.localizedDescription)
+            // Fallback to timestamp on error
+            let timestamp = Int(Date().timeIntervalSince1970)
+            return fileExtension.isEmpty
+                ? "\(name) \(timestamp)"
+                : "\(name) \(timestamp).\(fileExtension)"
+        }
+
         // Try sequence numbers 1, 2, 3, ... up to 999
         for i in 1...999 {
             let sequencedName = fileExtension.isEmpty
                 ? "\(name) \(i)"
                 : "\(name) \(i).\(fileExtension)"
 
-            let url = directory.appendingPathComponent(sequencedName)
-            if !fileManager.fileExists(atPath: url.path) {
+            if !existingFiles.contains(sequencedName) {
                 os_log("Found available filename with sequence: %{public}@",
                        log: .default, type: .debug, sequencedName)
                 return sequencedName
