@@ -80,7 +80,6 @@ class ScreenshotRenamer {
                 os_log("Renamed: %{public}@ -> %{public}@",
                        log: .default, type: .info, filename, finalFilename)
                 renamedFiles += 1
-
             } catch {
                 os_log("Error renaming %{public}@: %{public}@",
                        log: .default, type: .error, filename, error.localizedDescription)

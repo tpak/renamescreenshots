@@ -11,7 +11,6 @@ import os.log
 
 /// Detects macOS screenshot location and filename prefix
 class ScreenshotDetector {
-
     /// Detect current screenshot settings from macOS
     /// - Returns: ScreenshotSettings with location and prefix
     func detectSettings() -> ScreenshotSettings {

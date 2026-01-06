@@ -108,10 +108,8 @@ class FileValidator {
         }
 
         // Check for control characters (ASCII < 32)
-        for char in filename.unicodeScalars {
-            if char.value < 32 {
-                throw ScreenshotError.invalidFilename("Contains control characters")
-            }
+        for char in filename.unicodeScalars where char.value < 32 {
+            throw ScreenshotError.invalidFilename("Contains control characters")
         }
     }
 

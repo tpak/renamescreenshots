@@ -14,16 +14,12 @@ excluded:
   - Packages
   - Package.resolved
 
-# Per-path rule configuration
-force_try:
-  excluded:
-    - "Tests/**/*.swift"  # Allow force try in tests for brevity
-
 # Disable rules that conflict with project style
 disabled_rules:
   - trailing_whitespace  # Allow trailing whitespace in comments for alignment
   - inclusive_language   # "whitelist" is security terminology, not referring to race
   - file_header         # Files have varying header styles, not critical for small project
+  - blanket_disable_command  # Allow blanket disables in small project for simplicity
 
 # Opt-in to additional rules
 opt_in_rules:

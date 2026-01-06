@@ -10,7 +10,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class ScreenshotDetectorTests: XCTestCase {
-
     func testDetectSettings() {
         let detector = ScreenshotDetector()
         let settings = detector.detectSettings()

@@ -10,7 +10,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class ScreenshotRenamerTests: XCTestCase {
-
     var testDir: URL!
 
     override func setUp() {
@@ -148,6 +147,9 @@ class ScreenshotRenamerTests: XCTestCase {
 
         // Should not rename already-renamed file
         XCTAssertEqual(result.renamedFiles, 0, "Should not rename already-renamed files")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: renamedFile.path), "Already-renamed file should still exist")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: renamedFile.path),
+            "Already-renamed file should still exist"
+        )
     }
 }

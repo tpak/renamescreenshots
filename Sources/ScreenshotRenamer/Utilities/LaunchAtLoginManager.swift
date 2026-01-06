@@ -4,7 +4,6 @@ import ServiceManagement
 /// Manages launch at login functionality for the app
 /// Uses SMAppService for macOS 13+ with graceful fallback
 final class LaunchAtLoginManager {
-
     // MARK: - Singleton
 
     static let shared = LaunchAtLoginManager()
@@ -165,7 +164,9 @@ final class LaunchAtLoginManager {
                 let error = NSError(
                     domain: "LaunchCtl",
                     code: Int(task.terminationStatus),
-                    userInfo: [NSLocalizedDescriptionKey: "launchctl unload failed with status \(task.terminationStatus)"]
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "launchctl unload failed with status \(task.terminationStatus)"
+                    ]
                 )
                 return .failure(LaunchAtLoginError.legacyDisableFailed(error))
             }

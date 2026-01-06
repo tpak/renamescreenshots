@@ -36,10 +36,13 @@ struct ScreenshotMatch {
         let hour24 = to24Hour()
         let lowercasePrefix = prefix.lowercased()
 
+        let hourFormatted = String(format: "%02d", hour24)
+        let timestamp = "\(hourFormatted).\(minute).\(second)"
+
         if let seq = sequenceNumber {
-            return "\(lowercasePrefix) \(date) at \(String(format: "%02d", hour24)).\(minute).\(second) \(seq).\(fileExtension)"
+            return "\(lowercasePrefix) \(date) at \(timestamp) \(seq).\(fileExtension)"
         } else {
-            return "\(lowercasePrefix) \(date) at \(String(format: "%02d", hour24)).\(minute).\(second).\(fileExtension)"
+            return "\(lowercasePrefix) \(date) at \(timestamp).\(fileExtension)"
         }
     }
 }
