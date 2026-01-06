@@ -10,8 +10,9 @@ import Cocoa
 import UserNotifications
 import os.log
 
+// swiftlint:disable type_body_length file_length function_body_length attributes
+
 /// Controls the menu bar icon and menu
-// swiftlint:disable type_body_length
 class MenuBarController: NSObject {
     private var statusItem: NSStatusItem!
     private var watcher: ScreenshotWatcher?
@@ -432,10 +433,15 @@ class MenuBarController: NSObject {
                     )
                 }
             } else {
-                showAlert(
-                    title: "System Location Changed",
-                    message: "System screenshot location updated to:\n\(selectedURL.path)\n\nNew screenshots (⌘⇧4) will save here.\n\nStart the watcher to begin monitoring."
-                )
+                let message = """
+                    System screenshot location updated to:
+                    \(selectedURL.path)
+
+                    New screenshots (⌘⇧4) will save here.
+
+                    Start the watcher to begin monitoring.
+                    """
+                showAlert(title: "System Location Changed", message: message)
             }
 
             os_log("System screenshot location changed to: %{public}@",
@@ -597,7 +603,13 @@ class MenuBarController: NSObject {
     @objc private func resetScreenshotSettings() {
         let alert = NSAlert()
         alert.messageText = "Reset Screenshot Settings?"
-        alert.informativeText = "This will reset all screenshot preferences to macOS defaults:\n• Show thumbnail preview: ON\n• Include mouse pointer: OFF\n• Window shadow: ON\n• Format: PNG"
+        alert.informativeText = """
+            This will reset all screenshot preferences to macOS defaults:
+            • Show thumbnail preview: ON
+            • Include mouse pointer: OFF
+            • Window shadow: ON
+            • Format: PNG
+            """
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Reset")
         alert.addButton(withTitle: "Cancel")
@@ -650,7 +662,7 @@ class MenuBarController: NSObject {
     /// Request notification permissions
     private func requestNotificationPermissions() {
         let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, error in
+        center.requestAuthorization(options: [.alert, .sound]) { _, error in
             if let error = error {
                 os_log("Notification permission error: %{public}@",
                        log: .default, type: .debug, error.localizedDescription)

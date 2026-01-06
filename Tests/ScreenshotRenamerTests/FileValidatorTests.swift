@@ -10,7 +10,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class FileValidatorTests: XCTestCase {
-
     func testValidatesExistingDirectory() throws {
         let validator = FileValidator()
         let tempDir = FileManager.default.temporaryDirectory

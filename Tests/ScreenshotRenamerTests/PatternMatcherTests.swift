@@ -10,7 +10,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class PatternMatcherTests: XCTestCase {
-
     func testDefaultPattern() {
         let matcher = PatternMatcher(prefix: "Screenshot")
 

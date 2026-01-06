@@ -9,10 +9,10 @@ import Foundation
 
 /// Format for screenshot files
 enum ScreenshotFormat: String {
-    case png = "png"
-    case jpg = "jpg"
-    case pdf = "pdf"
-    case tiff = "tiff"
+    case png
+    case jpg
+    case pdf
+    case tiff
 }
 
 /// Advanced screenshot preferences

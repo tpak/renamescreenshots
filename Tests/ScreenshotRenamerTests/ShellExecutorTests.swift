@@ -9,7 +9,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class ShellExecutorTests: XCTestCase {
-
     func testReadDefaults() {
         // Test reading an existing defaults value
         // This test reads the actual system value

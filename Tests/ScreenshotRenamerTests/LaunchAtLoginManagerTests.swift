@@ -9,7 +9,6 @@ import XCTest
 @testable import ScreenshotRenamer
 
 class LaunchAtLoginManagerTests: XCTestCase {
-
     func testSharedInstanceExists() {
         // Verify singleton instance is accessible
         let manager = LaunchAtLoginManager.shared
@@ -20,7 +19,7 @@ class LaunchAtLoginManagerTests: XCTestCase {
         // Verify same instance is returned
         let manager1 = LaunchAtLoginManager.shared
         let manager2 = LaunchAtLoginManager.shared
-        XCTAssertTrue(manager1 === manager2)
+        XCTAssertIdentical(manager1, manager2)
     }
 
     func testIsEnabledReturnsBoolean() {

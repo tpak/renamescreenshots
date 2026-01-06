@@ -11,7 +11,6 @@ import os.log
 
 /// Utility for safely executing shell commands
 class ShellExecutor {
-
     /// Execute `defaults read` command to read macOS preferences
     /// - Parameters:
     ///   - domain: The defaults domain (e.g., "com.apple.screencapture")
