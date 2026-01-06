@@ -446,6 +446,7 @@ class MenuBarController: NSObject {
     }
 
     /// Toggle launch at login
+    @MainActor
     @objc private func toggleLaunchAtLogin() {
         let result = LaunchAtLoginManager.shared.toggle()
 
@@ -462,12 +463,10 @@ class MenuBarController: NSObject {
                    log: .default, type: .info, isEnabled ? "enabled" : "disabled")
 
         case .failure(let error):
-            Task { @MainActor in
-                showAlert(
-                    title: "Launch at Login Error",
-                    message: error.localizedDescription
-                )
-            }
+            showAlert(
+                title: "Launch at Login Error",
+                message: error.localizedDescription
+            )
             os_log("Failed to toggle launch at login: %{public}@",
                    log: .default, type: .error, error.localizedDescription)
         }
