@@ -133,6 +133,16 @@ final class LaunchAtLoginManager {
             try task.run()
             task.waitUntilExit()
 
+            // Verify launchctl succeeded
+            guard task.terminationStatus == 0 else {
+                let error = NSError(
+                    domain: "LaunchCtl",
+                    code: Int(task.terminationStatus),
+                    userInfo: [NSLocalizedDescriptionKey: "launchctl load failed with status \(task.terminationStatus)"]
+                )
+                return .failure(LaunchAtLoginError.legacyEnableFailed(error))
+            }
+
             return .success(())
         } catch {
             return .failure(LaunchAtLoginError.legacyEnableFailed(error))
@@ -149,6 +159,16 @@ final class LaunchAtLoginManager {
             task.arguments = ["unload", launchAgentPath]
             try task.run()
             task.waitUntilExit()
+
+            // Verify launchctl succeeded
+            guard task.terminationStatus == 0 else {
+                let error = NSError(
+                    domain: "LaunchCtl",
+                    code: Int(task.terminationStatus),
+                    userInfo: [NSLocalizedDescriptionKey: "launchctl unload failed with status \(task.terminationStatus)"]
+                )
+                return .failure(LaunchAtLoginError.legacyDisableFailed(error))
+            }
 
             // Remove plist file
             try FileManager.default.removeItem(atPath: launchAgentPath)

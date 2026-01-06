@@ -93,9 +93,18 @@ class FileValidator {
         }
 
         // Check for path traversal attempts
-        if filename == "." || filename == ".." ||
-           filename.hasPrefix("..") || filename.contains("/..") {
+        // Note: Path separators are already blocked above, but check for edge cases
+        let trimmed = filename.trimmingCharacters(in: .whitespaces)
+        if trimmed == "." || trimmed == ".." ||
+           trimmed.hasPrefix("..") ||
+           filename.contains("/..") ||
+           filename.contains("..\\") {
             throw ScreenshotError.invalidFilename("Path traversal attempt")
+        }
+
+        // Additional check for multiple dots that could be confusing
+        if trimmed.range(of: #"\.{3,}"#, options: .regularExpression) != nil {
+            throw ScreenshotError.invalidFilename("Invalid dot sequence")
         }
 
         // Check for control characters (ASCII < 32)

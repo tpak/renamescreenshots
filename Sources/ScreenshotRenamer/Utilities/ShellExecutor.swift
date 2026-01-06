@@ -143,8 +143,16 @@ class ShellExecutor {
             throw ScreenshotError.commandFailed
         }
 
-        // Read output
-        let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        // Read output and explicitly close file handles to prevent descriptor leaks
+        let outputHandle = outputPipe.fileHandleForReading
+        let errorHandle = errorPipe.fileHandleForReading
+
+        let outputData = outputHandle.readDataToEndOfFile()
+
+        // Explicitly close file handles
+        try? outputHandle.close()
+        try? errorHandle.close()
+
         guard let output = String(data: outputData, encoding: .utf8) else {
             throw ScreenshotError.commandFailed
         }

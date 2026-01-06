@@ -17,7 +17,7 @@ class ScreenshotWatcher {
     private let renamer: ScreenshotRenamer
     private let matcher: PatternMatcher
 
-    private var isRunning = false
+    private(set) var isRunning = false
     private let processingQueue = DispatchQueue(
         label: "com.screenshot-renamer.processing",
         qos: .utility
@@ -62,6 +62,14 @@ class ScreenshotWatcher {
                     .fromOpaque(contextInfo!)
                     .takeUnretainedValue()
 
+                // Safety check: only process if watcher is still running
+                // Prevents use-after-free if callback fires after stopWatching()
+                guard watcher.isRunning else {
+                    os_log("FSEvents callback fired after watcher stopped, ignoring",
+                           log: .default, type: .debug)
+                    return
+                }
+
                 let paths = unsafeBitCast(eventPaths, to: NSArray.self) as! [String]
                 watcher.handleFileEvents(paths)
             },
@@ -96,6 +104,12 @@ class ScreenshotWatcher {
         FSEventStreamRelease(stream)
         streamRef = nil
         isRunning = false
+
+        // Wait for any pending operations in the processing queue to complete
+        // This prevents race conditions where old tasks process with stale settings
+        processingQueue.sync {
+            // Barrier: ensures all previously queued async tasks complete
+        }
 
         os_log("Stopped watching", log: .default, type: .info)
     }

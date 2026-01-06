@@ -301,7 +301,9 @@ class MenuBarController: NSObject {
     /// Toggle watcher on/off
     @MainActor
     @objc private func toggleWatcher() {
-        if isWatcherRunning {
+        // Use watcher's actual running state instead of separate flag
+        // This eliminates race condition between flag and actual state
+        if let watcher = watcher, watcher.isRunning {
             stopWatcher()
             watcherMenuItem.title = "Start Watcher"
             watcherMenuItem.state = .off
@@ -331,19 +333,21 @@ class MenuBarController: NSObject {
 
     /// Start the file watcher
     private func startWatcher() throws {
-        guard !isWatcherRunning else { return }
+        // Check watcher's actual state instead of separate flag
+        guard watcher == nil || watcher?.isRunning == false else { return }
 
         watcher = ScreenshotWatcher(settings: settings)
         watcher?.startWatching()
-        isWatcherRunning = true
+        isWatcherRunning = watcher?.isRunning ?? false
     }
 
     /// Stop the file watcher
     private func stopWatcher() {
-        guard isWatcherRunning else { return }
+        // Check watcher's actual state instead of separate flag
+        guard let watcher = watcher, watcher.isRunning else { return }
 
-        watcher?.stopWatching()
-        watcher = nil
+        watcher.stopWatching()
+        self.watcher = nil
         isWatcherRunning = false
     }
 
@@ -400,10 +404,11 @@ class MenuBarController: NSObject {
             }
 
             // Restart SystemUIServer to apply changes
-            _ = ShellExecutor.restartSystemUIServer()
+            restartSystemUIServerWithErrorHandling()
 
             // Stop watcher before reloading settings
-            let wasRunning = isWatcherRunning
+            // Use watcher's actual state to avoid race condition
+            let wasRunning = watcher?.isRunning ?? false
             if wasRunning {
                 stopWatcher()
             }
@@ -439,7 +444,8 @@ class MenuBarController: NSObject {
 
     /// Quit the application
     @objc private func quit() {
-        if isWatcherRunning {
+        // Use watcher's actual state to avoid race condition
+        if watcher?.isRunning == true {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
@@ -491,7 +497,7 @@ class MenuBarController: NSObject {
         }
 
         showThumbnailMenuItem.state = newState ? .on : .off
-        _ = ShellExecutor.restartSystemUIServer()
+        restartSystemUIServerWithErrorHandling()
 
         showNotification(
             title: "Thumbnail Preview \(newState ? "Enabled" : "Disabled")",
@@ -518,7 +524,7 @@ class MenuBarController: NSObject {
         }
 
         includeCursorMenuItem.state = newState ? .on : .off
-        _ = ShellExecutor.restartSystemUIServer()
+        restartSystemUIServerWithErrorHandling()
 
         showNotification(
             title: "Mouse Pointer \(newState ? "Enabled" : "Disabled")",
@@ -545,7 +551,7 @@ class MenuBarController: NSObject {
         }
 
         disableShadowMenuItem.state = newState ? .on : .off
-        _ = ShellExecutor.restartSystemUIServer()
+        restartSystemUIServerWithErrorHandling()
 
         showNotification(
             title: "Window Shadow \(newState ? "Disabled" : "Enabled")",
@@ -577,7 +583,7 @@ class MenuBarController: NSObject {
             menuItem.state = (formatKey == format) ? .on : .off
         }
 
-        _ = ShellExecutor.restartSystemUIServer()
+        restartSystemUIServerWithErrorHandling()
 
         showNotification(
             title: "Format Changed",
@@ -621,6 +627,20 @@ class MenuBarController: NSObject {
                 title: "Settings Reset",
                 message: "All screenshot preferences restored to defaults"
             )
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Restart SystemUIServer and warn user if it fails
+    /// SystemUIServer restart is needed for screenshot preferences to take effect
+    @MainActor
+    private func restartSystemUIServerWithErrorHandling() {
+        if !ShellExecutor.restartSystemUIServer() {
+            // Non-blocking warning - user should be aware but it's not critical
+            os_log("SystemUIServer restart failed", log: .default, type: .error)
+            // Note: Not showing alert to avoid disrupting user flow
+            // Settings are still written, just may not take effect until restart
         }
     }
 
