@@ -198,6 +198,29 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setFormat(originalPrefs.format)
     }
 
+    func testSetIncludeDate() {
+        let detector = ScreenshotDetector()
+
+        // Store original value
+        let originalPrefs = detector.detectPreferences()
+
+        // Toggle to opposite value
+        let newValue = !originalPrefs.includeDate
+        let success = detector.setIncludeDate(newValue)
+        XCTAssertTrue(success, "Setting include date should succeed")
+
+        // Read back and verify
+        let updatedPrefs = detector.detectPreferences()
+        XCTAssertEqual(
+            updatedPrefs.includeDate,
+            newValue,
+            "Include date should be updated"
+        )
+
+        // Restore original value
+        _ = detector.setIncludeDate(originalPrefs.includeDate)
+    }
+
     func testResetToDefaults() {
         let detector = ScreenshotDetector()
 
@@ -209,6 +232,7 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setIncludeCursor(true)
         _ = detector.setDisableShadow(true)
         _ = detector.setFormat(.jpg)
+        _ = detector.setIncludeDate(false)
 
         // Verify they were changed
         let changedPrefs = detector.detectPreferences()
@@ -216,6 +240,7 @@ class ScreenshotDetectorTests: XCTestCase {
         XCTAssertTrue(changedPrefs.includeCursor)
         XCTAssertTrue(changedPrefs.disableShadow)
         XCTAssertEqual(changedPrefs.format, .jpg)
+        XCTAssertFalse(changedPrefs.includeDate)
 
         // Reset to defaults
         let success = detector.resetToDefaults()
@@ -245,12 +270,18 @@ class ScreenshotDetectorTests: XCTestCase {
             expectedDefaults.format,
             "Format should be reset to default (png)"
         )
+        XCTAssertEqual(
+            resetPrefs.includeDate,
+            expectedDefaults.includeDate,
+            "Include date should be reset to default (true)"
+        )
 
         // Restore original preferences
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
         _ = detector.setIncludeCursor(originalPrefs.includeCursor)
         _ = detector.setDisableShadow(originalPrefs.disableShadow)
         _ = detector.setFormat(originalPrefs.format)
+        _ = detector.setIncludeDate(originalPrefs.includeDate)
     }
 
     func testPreferencesPersistence() {
@@ -262,6 +293,7 @@ class ScreenshotDetectorTests: XCTestCase {
         // Set specific values
         _ = detector.setShowThumbnail(false)
         _ = detector.setIncludeCursor(true)
+        _ = detector.setIncludeDate(false)
 
         // Create new detector instance (simulates app restart)
         let detector2 = ScreenshotDetector()
@@ -276,9 +308,14 @@ class ScreenshotDetectorTests: XCTestCase {
             persistedPrefs.includeCursor,
             "Include cursor should persist across detector instances"
         )
+        XCTAssertFalse(
+            persistedPrefs.includeDate,
+            "Include date should persist across detector instances"
+        )
 
         // Restore original
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
         _ = detector.setIncludeCursor(originalPrefs.includeCursor)
+        _ = detector.setIncludeDate(originalPrefs.includeDate)
     }
 }

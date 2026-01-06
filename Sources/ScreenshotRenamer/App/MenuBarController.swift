@@ -31,6 +31,7 @@ class MenuBarController: NSObject {
     private var showThumbnailMenuItem: NSMenuItem!
     private var includeCursorMenuItem: NSMenuItem!
     private var disableShadowMenuItem: NSMenuItem!
+    private var includeDateMenuItem: NSMenuItem!
     private var formatMenuItems: [ScreenshotFormat: NSMenuItem] = [:]
 
     override init() {
@@ -208,6 +209,16 @@ class MenuBarController: NSObject {
         disableShadowMenuItem.target = self
         disableShadowMenuItem.state = prefs.disableShadow ? .on : .off
         submenu.addItem(disableShadowMenuItem)
+
+        // Include Date in Filename toggle
+        includeDateMenuItem = NSMenuItem(
+            title: "Include Date in Filename",
+            action: #selector(toggleIncludeDate),
+            keyEquivalent: ""
+        )
+        includeDateMenuItem.target = self
+        includeDateMenuItem.state = prefs.includeDate ? .on : .off
+        submenu.addItem(includeDateMenuItem)
 
         submenu.addItem(NSMenuItem.separator())
 
@@ -568,6 +579,33 @@ class MenuBarController: NSObject {
         )
     }
 
+    /// Toggle include date in filename
+    @MainActor
+    @objc private func toggleIncludeDate() {
+        let currentState = includeDateMenuItem.state == .on
+        let newState = !currentState
+
+        guard detector.setIncludeDate(newState) else {
+            Task { @MainActor in
+                showAlert(
+                    title: "Error",
+                    message: "Failed to change date setting"
+                )
+            }
+            return
+        }
+
+        includeDateMenuItem.state = newState ? .on : .off
+        restartSystemUIServerWithErrorHandling()
+
+        showNotification(
+            title: "Filename Date \(newState ? "Enabled" : "Disabled")",
+            message: newState
+                ? "Screenshots will include date and time in filename"
+                : "Screenshots will use sequential numbering (Screenshot.png, Screenshot 1.png, ...)"
+        )
+    }
+
     /// Set screenshot format
     @MainActor
     @objc private func setScreenshotFormat(_ sender: NSMenuItem) {
@@ -631,6 +669,7 @@ class MenuBarController: NSObject {
             showThumbnailMenuItem.state = defaults.showThumbnail ? .on : .off
             includeCursorMenuItem.state = defaults.includeCursor ? .on : .off
             disableShadowMenuItem.state = defaults.disableShadow ? .on : .off
+            includeDateMenuItem.state = defaults.includeDate ? .on : .off
 
             for (formatKey, menuItem) in formatMenuItems {
                 menuItem.state = (formatKey == defaults.format) ? .on : .off
