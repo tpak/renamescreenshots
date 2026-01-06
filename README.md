@@ -1,6 +1,25 @@
 # Screenshot Renamer
+
+<!-- Project Status -->
+[![CI/CD](https://github.com/tpak/renamescreenshots/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/tpak/renamescreenshots/actions/workflows/swift.yml)
+[![SwiftLint](https://github.com/tpak/renamescreenshots/actions/workflows/swiftlint.yml/badge.svg?branch=main)](https://github.com/tpak/renamescreenshots/actions/workflows/swiftlint.yml)
+[![CodeQL](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tpak/renamescreenshots/actions/workflows/codeql.yml)
+
+<!-- Release Info -->
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/releases/latest)
+[![GitHub release date](https://img.shields.io/github/release-date/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/tpak/renamescreenshots/total)](https://github.com/tpak/renamescreenshots/releases)
+
+<!-- Code Quality -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Swift Version](https://img.shields.io/badge/Swift-5.7%2B-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/Platform-macOS%2011.0%2B-blue.svg)](https://www.apple.com/macos/)
+[![Code Size](https://img.shields.io/github/languages/code-size/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots)
+
+<!-- Activity -->
+[![GitHub last commit](https://img.shields.io/github/last-commit/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/commits/main)
+[![GitHub issues](https://img.shields.io/github/issues/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/pulls)
 
 Native macOS menu bar app to automatically rename screenshots from 12-hour to 24-hour format.
 
