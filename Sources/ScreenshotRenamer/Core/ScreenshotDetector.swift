@@ -55,12 +55,14 @@ class ScreenshotDetector {
         let includeCursor = detectIncludeCursor()
         let disableShadow = detectDisableShadow()
         let format = detectFormat()
+        let includeDate = detectIncludeDate()
 
         return ScreenshotPreferences(
             showThumbnail: showThumbnail,
             includeCursor: includeCursor,
             disableShadow: disableShadow,
-            format: format
+            format: format,
+            includeDate: includeDate
         )
     }
 
@@ -108,6 +110,17 @@ class ScreenshotDetector {
         )
     }
 
+    /// Set include date in filename preference
+    /// - Parameter enabled: True to include date/time in filename, false for sequential numbering
+    /// - Returns: True if successful
+    func setIncludeDate(_ enabled: Bool) -> Bool {
+        return ShellExecutor.writeBoolDefaults(
+            domain: "com.apple.screencapture",
+            key: "include-date",
+            value: enabled
+        )
+    }
+
     /// Reset all screenshot preferences to macOS defaults
     /// - Returns: True if all resets successful
     func resetToDefaults() -> Bool {
@@ -117,7 +130,8 @@ class ScreenshotDetector {
             setShowThumbnail(defaults.showThumbnail),
             setIncludeCursor(defaults.includeCursor),
             setDisableShadow(defaults.disableShadow),
-            setFormat(defaults.format)
+            setFormat(defaults.format),
+            setIncludeDate(defaults.includeDate)
         ]
 
         let success = results.allSatisfy { $0 }
@@ -172,6 +186,16 @@ class ScreenshotDetector {
             return .png // Default is PNG
         }
         return ScreenshotFormat(rawValue: output.lowercased()) ?? .png
+    }
+
+    private func detectIncludeDate() -> Bool {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "include-date"
+        ) else {
+            return true // Default is true
+        }
+        return output == "1" || output.lowercased() == "true"
     }
 
     /// Detect screenshot save location
