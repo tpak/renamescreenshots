@@ -48,7 +48,7 @@ Thank you for your interest in contributing to Screenshot Renamer! This document
    ```bash
    swift test
    ```
-   All 45 tests must pass before submitting.
+   All tests must pass before submitting.
 
 5. **Build locally**:
    ```bash
@@ -234,13 +234,15 @@ swift test --verbose
 ### Test Coverage
 
 We maintain comprehensive test coverage:
-- Pattern matching (13 tests)
+- Pattern matching (22 tests)
 - File validation (12 tests)
-- Screenshot detection (10 tests)
+- Screenshot detection (11 tests)
+- Launch at login (10 tests)
+- Screenshot renaming (9 tests)
 - Shell command execution (5 tests)
-- Screenshot renaming (5 tests)
+- Debug logger (5 tests)
 
-**Total: 45 tests**
+**Total: 74 tests**
 
 ### Writing Tests
 
