@@ -14,6 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("🚀 Screenshot Renamer starting...")
         os_log("Screenshot Renamer starting", log: .default, type: .info)
+        DebugLogger.shared.log("App launching, debug logging \(DebugLogger.shared.isEnabled ? "enabled" : "disabled")", category: "App")
 
         // Initialize menu bar BEFORE setting activation policy
         menuBarController = MenuBarController()
@@ -23,11 +24,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         print("✅ Set activation policy to accessory")
 
+        DebugLogger.shared.log("App started", category: "App")
         os_log("Screenshot Renamer started", log: .default, type: .info)
         print("✅ Screenshot Renamer fully initialized")
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        DebugLogger.shared.log("App shutting down", category: "App")
         os_log("Screenshot Renamer stopping", log: .default, type: .info)
     }
 

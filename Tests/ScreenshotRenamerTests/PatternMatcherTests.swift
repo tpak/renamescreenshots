@@ -131,4 +131,122 @@ class PatternMatcherTests: XCTestCase {
         XCTAssertNotNil(matcher.match("Screenshot 2024-05-24 at 1.23.45 am.png"))
         XCTAssertNotNil(matcher.match("Screenshot 2024-05-24 at 1.23.45 pm.png"))
     }
+
+    // MARK: - 24-hour format tests
+
+    func test24HourFormatMatching() {
+        let matcher = PatternMatcher(prefix: "screenshot")
+
+        let match = matcher.match("screenshot 2025-10-22 at 11.12.37.png")
+        XCTAssertNotNil(match, "24-hour format without AM/PM should match")
+        XCTAssertEqual(match?.hour, 11)
+        XCTAssertEqual(match?.minute, "12")
+        XCTAssertEqual(match?.second, "37")
+        XCTAssertNil(match?.period, "Period should be nil for 24-hour format")
+        XCTAssertNil(match?.sequenceNumber)
+        XCTAssertEqual(match?.fileExtension, "png")
+    }
+
+    func test24HourFormatHighHour() {
+        let matcher = PatternMatcher(prefix: "screenshot")
+
+        let match = matcher.match("screenshot 2025-10-22 at 17.25.30.png")
+        XCTAssertNotNil(match, "Hour 17 (24-hour) should match")
+        XCTAssertEqual(match?.hour, 17)
+        XCTAssertNil(match?.period)
+    }
+
+    func test24HourTo24HourConversion() {
+        let matcher = PatternMatcher(prefix: "screenshot")
+
+        let match = matcher.match("screenshot 2026-01-22 at 14.10.07.png")!
+        XCTAssertNil(match.period)
+        XCTAssertEqual(match.to24Hour(), 14, "to24Hour() should return hour directly when period is nil")
+    }
+
+    func testBuildNewFilename24Hour() {
+        let matcher = PatternMatcher(prefix: "screenshot")
+
+        let match = matcher.match("screenshot 2026-01-22 at 14.10.07.png")!
+        let newFilename = match.buildNewFilename(prefix: "screenshot")
+
+        XCTAssertEqual(newFilename, "screenshot 2026-01-22 at 14.10.07.png",
+                       "Already-correct 24-hour file should produce identical filename")
+    }
+
+    func test24HourWithSequenceNumber() {
+        let matcher = PatternMatcher(prefix: "screenshot")
+
+        let match = matcher.match("screenshot 2026-01-22 at 14.10.07 1.png")
+        XCTAssertNotNil(match, "24-hour with bare sequence should match")
+        XCTAssertEqual(match?.hour, 14)
+        XCTAssertNil(match?.period)
+        XCTAssertEqual(match?.sequenceNumber, "1")
+    }
+
+    // MARK: - Parenthesized sequence number tests
+
+    func testParenthesizedSequenceNumber() {
+        let matcher = PatternMatcher(prefix: "Screenshot")
+
+        let match = matcher.match("Screenshot 2026-01-08 at 9.20.55 am (2).png")
+        XCTAssertNotNil(match, "Parenthesized sequence should match")
+        XCTAssertEqual(match?.sequenceNumber, "2")
+        XCTAssertEqual(match?.period, "AM")
+        XCTAssertEqual(match?.hour, 9)
+    }
+
+    func testBuildNewFilenameParenSequence() {
+        let matcher = PatternMatcher(prefix: "Screenshot")
+
+        let match = matcher.match("Screenshot 2026-01-08 at 9.20.55 am (2).png")!
+        let newFilename = match.buildNewFilename(prefix: "Screenshot")
+
+        XCTAssertEqual(newFilename, "screenshot 2026-01-08 at 09.20.55 2.png",
+                       "Parenthesized sequence should be normalized to bare number")
+    }
+
+    // MARK: - Uppercase prefix with 24-hour
+
+    func testRenames24HourWithUpperPrefix() {
+        let matcher = PatternMatcher(prefix: "Screenshot")
+
+        let match = matcher.match("Screenshot 2025-10-22 at 17.25.30.png")
+        XCTAssertNotNil(match, "Uppercase prefix with 24-hour time should match")
+        XCTAssertEqual(match?.hour, 17)
+        XCTAssertNil(match?.period)
+
+        let newFilename = match!.buildNewFilename(prefix: "Screenshot")
+        XCTAssertEqual(newFilename, "screenshot 2025-10-22 at 17.25.30.png")
+    }
+
+    // MARK: - Real-world filenames from user
+
+    func testRealWorldFilenames() {
+        let matcher = PatternMatcher(prefix: "Screenshot")
+
+        let testCases: [(filename: String, shouldMatch: Bool, expectedHour: Int?, expectedSeq: String?)] = [
+            ("screenshot 2025-10-22 at 11.12.37.png", true, 11, nil),
+            ("screenshot 2026-01-22 at 14.10.07 1.png", true, 14, "1"),
+            ("Screenshot 2026-01-08 at 9.20.55 am (2).png", true, 9, "2"),
+            ("Screenshot 2026-01-19 at 10.03.12 am (2).png", true, 10, "2"),
+            ("Screenshot 2026-01-21 at 9.35.21 am (2).png", true, 9, "2"),
+            ("Screenshot 2026-01-21 at 9.35.33 am (2).png", true, 9, "2"),
+            ("Screenshot 2026-01-21 at 9.35.50 am (2).png", true, 9, "2"),
+            ("screenshot 2026-01-22 at 14.10.07.png", true, 14, nil),
+            ("screenshot 2025-10-22 at 17.25.30.png", true, 17, nil),
+            ("screenshot 2025-12-23 at 06.02.10.png", true, 6, nil),
+        ]
+
+        for tc in testCases {
+            let match = matcher.match(tc.filename)
+            if tc.shouldMatch {
+                XCTAssertNotNil(match, "Should match: \(tc.filename)")
+                XCTAssertEqual(match?.hour, tc.expectedHour, "Hour mismatch for: \(tc.filename)")
+                XCTAssertEqual(match?.sequenceNumber, tc.expectedSeq, "Sequence mismatch for: \(tc.filename)")
+            } else {
+                XCTAssertNil(match, "Should not match: \(tc.filename)")
+            }
+        }
+    }
 }

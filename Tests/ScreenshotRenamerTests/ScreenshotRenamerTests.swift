@@ -152,4 +152,97 @@ class ScreenshotRenamerTests: XCTestCase {
             "Already-renamed file should still exist"
         )
     }
+
+    // MARK: - 12-hour with parenthesized sequence
+
+    func testRenames12HourWithParenSequence() throws {
+        let testFile = testDir.appendingPathComponent("Screenshot 2026-01-08 at 9.20.55 am (2).png")
+        try "test".write(to: testFile, atomically: true, encoding: .utf8)
+
+        let settings = ScreenshotSettings(location: testDir, prefix: "Screenshot")
+        let renamer = ScreenshotRenamer(settings: settings, whitelist: [testDir])
+        let result = try renamer.renameScreenshots()
+
+        XCTAssertEqual(result.renamedFiles, 1, "Should rename parenthesized sequence file")
+        XCTAssertEqual(result.errors.count, 0)
+
+        let expectedFile = testDir.appendingPathComponent("screenshot 2026-01-08 at 09.20.55 2.png")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedFile.path),
+                       "Renamed file with normalized sequence should exist")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: testFile.path),
+                        "Original file should not exist")
+    }
+
+    // MARK: - 24-hour format skipping
+
+    func testSkipsAlready24HourRenamed() throws {
+        // Already-correct 24-hour file with lowercase prefix
+        let testFile = testDir.appendingPathComponent("screenshot 2026-01-22 at 14.10.07.png")
+        try "test".write(to: testFile, atomically: true, encoding: .utf8)
+
+        let settings = ScreenshotSettings(location: testDir, prefix: "Screenshot")
+        let renamer = ScreenshotRenamer(settings: settings, whitelist: [testDir])
+        let result = try renamer.renameScreenshots()
+
+        XCTAssertEqual(result.renamedFiles, 0, "Should skip already-correct 24-hour file")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: testFile.path),
+                       "File should remain unchanged")
+    }
+
+    // MARK: - Uppercase prefix with 24-hour
+
+    func testRenames24HourWithUpperPrefix() throws {
+        // Uppercase prefix needs lowercasing even though time is already 24-hour
+        let testFile = testDir.appendingPathComponent("Screenshot 2025-10-22 at 17.25.30.png")
+        try "test".write(to: testFile, atomically: true, encoding: .utf8)
+
+        let settings = ScreenshotSettings(location: testDir, prefix: "Screenshot")
+        let renamer = ScreenshotRenamer(settings: settings, whitelist: [testDir])
+        let result = try renamer.renameScreenshots()
+
+        XCTAssertEqual(result.renamedFiles, 1, "Should rename uppercase-prefix 24-hour file")
+
+        let expectedFile = testDir.appendingPathComponent("screenshot 2025-10-22 at 17.25.30.png")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedFile.path),
+                       "Lowercased prefix file should exist")
+    }
+
+    // MARK: - Real-world batch rename
+
+    func testRealWorldBatchRename() throws {
+        // Mix of 12h, 12h+paren, uppercase 24h, lowercase 24h
+        let filenames = [
+            "Screenshot 2026-01-08 at 9.20.55 am (2).png",
+            "Screenshot 2025-10-22 at 17.25.30.png",
+            "screenshot 2026-01-22 at 14.10.07.png",         // already correct
+            "Screenshot 2026-01-21 at 9.35.21 am (2).png",
+        ]
+
+        for name in filenames {
+            let file = testDir.appendingPathComponent(name)
+            try "data".write(to: file, atomically: true, encoding: .utf8)
+        }
+
+        let settings = ScreenshotSettings(location: testDir, prefix: "Screenshot")
+        let renamer = ScreenshotRenamer(settings: settings, whitelist: [testDir])
+        let result = try renamer.renameScreenshots()
+
+        // 3 should be renamed, 1 already correct
+        XCTAssertEqual(result.renamedFiles, 3, "Should rename 3 of 4 files")
+        XCTAssertEqual(result.errors.count, 0)
+
+        // Verify expected output files
+        let expectedFiles = [
+            "screenshot 2026-01-08 at 09.20.55 2.png",
+            "screenshot 2025-10-22 at 17.25.30.png",
+            "screenshot 2026-01-22 at 14.10.07.png",
+            "screenshot 2026-01-21 at 09.35.21 2.png",
+        ]
+
+        for name in expectedFiles {
+            let file = testDir.appendingPathComponent(name)
+            XCTAssertTrue(FileManager.default.fileExists(atPath: file.path),
+                           "Expected file should exist: \(name)")
+        }
+    }
 }

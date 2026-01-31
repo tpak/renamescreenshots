@@ -34,6 +34,9 @@ class MenuBarController: NSObject {
     private var includeDateMenuItem: NSMenuItem!
     private var formatMenuItems: [ScreenshotFormat: NSMenuItem] = [:]
 
+    // Debug submenu items
+    private var debugEnableMenuItem: NSMenuItem!
+
     override init() {
         super.init()
         print("📋 MenuBarController initializing...")
@@ -158,6 +161,16 @@ class MenuBarController: NSObject {
             keyEquivalent: ""
         )
         menu.addItem(prefixMenuItem)
+
+        // Debug submenu
+        let debugSubmenu = buildDebugSubmenu()
+        let debugMenuItem = NSMenuItem(
+            title: "Debug",
+            action: nil,
+            keyEquivalent: ""
+        )
+        debugMenuItem.submenu = debugSubmenu
+        menu.addItem(debugMenuItem)
 
         menu.addItem(NSMenuItem.separator())
 
@@ -680,6 +693,88 @@ class MenuBarController: NSObject {
                 message: "All screenshot preferences restored to defaults"
             )
         }
+    }
+
+    // MARK: - Debug Submenu
+
+    /// Build the debug submenu
+    private func buildDebugSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+
+        debugEnableMenuItem = NSMenuItem(
+            title: "Enable Debug Logging",
+            action: #selector(toggleDebugLogging),
+            keyEquivalent: ""
+        )
+        debugEnableMenuItem.target = self
+        debugEnableMenuItem.state = DebugLogger.shared.isEnabled ? .on : .off
+        submenu.addItem(debugEnableMenuItem)
+
+        let setLocationItem = NSMenuItem(
+            title: "Set Log Location...",
+            action: #selector(setDebugLogLocation),
+            keyEquivalent: ""
+        )
+        setLocationItem.target = self
+        submenu.addItem(setLocationItem)
+
+        let openLogItem = NSMenuItem(
+            title: "Open Log File",
+            action: #selector(openDebugLog),
+            keyEquivalent: ""
+        )
+        openLogItem.target = self
+        submenu.addItem(openLogItem)
+
+        let clearLogItem = NSMenuItem(
+            title: "Clear Log",
+            action: #selector(clearDebugLog),
+            keyEquivalent: ""
+        )
+        clearLogItem.target = self
+        submenu.addItem(clearLogItem)
+
+        return submenu
+    }
+
+    /// Toggle debug logging on/off
+    @MainActor
+    @objc private func toggleDebugLogging() {
+        DebugLogger.shared.isEnabled.toggle()
+        debugEnableMenuItem.state = DebugLogger.shared.isEnabled ? .on : .off
+        DebugLogger.shared.log("Debug logging enabled", category: "App")
+    }
+
+    /// Set a custom log file location via NSSavePanel
+    @MainActor
+    @objc private func setDebugLogLocation() {
+        let panel = NSSavePanel()
+        panel.title = "Choose Debug Log Location"
+        panel.nameFieldStringValue = "debug.log"
+        panel.allowedContentTypes = [.log, .plainText]
+        panel.directoryURL = DebugLogger.shared.logFileURL.deletingLastPathComponent()
+
+        let response = panel.runModal()
+        if response == .OK, let url = panel.url {
+            DebugLogger.shared.logFileURL = url
+        }
+    }
+
+    /// Reveal the log file in Finder
+    @objc private func openDebugLog() {
+        let url = DebugLogger.shared.logFileURL
+        if FileManager.default.fileExists(atPath: url.path) {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } else {
+            Task { @MainActor in
+                showAlert(title: "No Log File", message: "No debug log file exists yet. Enable debug logging and perform some actions first.")
+            }
+        }
+    }
+
+    /// Clear the debug log file
+    @objc private func clearDebugLog() {
+        DebugLogger.shared.clear()
     }
 
     // MARK: - Helper Methods

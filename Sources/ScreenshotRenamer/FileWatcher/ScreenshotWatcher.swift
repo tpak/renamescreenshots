@@ -92,6 +92,7 @@ class ScreenshotWatcher {
         FSEventStreamStart(streamRef!)
         isRunning = true
 
+        DebugLogger.shared.log("Started watching: \(settings.location.path)", category: "Watcher")
         os_log("Started watching: %{public}@",
                log: .default, type: .info, settings.location.path)
     }
@@ -112,6 +113,7 @@ class ScreenshotWatcher {
             // Barrier: ensures all previously queued async tasks complete
         }
 
+        DebugLogger.shared.log("Stopped watching", category: "Watcher")
         os_log("Stopped watching", log: .default, type: .info)
     }
 
@@ -127,6 +129,7 @@ class ScreenshotWatcher {
 
                 // Skip hidden files (macOS creates .Screenshot first)
                 guard !filename.hasPrefix(".") else {
+                    DebugLogger.shared.log("Skipped hidden file: \(filename)", category: "Watcher")
                     continue
                 }
 
@@ -135,6 +138,7 @@ class ScreenshotWatcher {
                     continue
                 }
 
+                DebugLogger.shared.log("Detected screenshot: \(filename)", category: "Watcher")
                 os_log("Detected screenshot: %{public}@",
                        log: .default, type: .info, filename)
 

@@ -10,15 +10,20 @@ import Foundation
 /// Parsed components of a screenshot filename
 struct ScreenshotMatch {
     let date: String            // YYYY-MM-DD
-    let hour: Int               // 1-12 (12-hour format)
+    let hour: Int               // 1-12 (12h) or 0-23 (24h)
     let minute: String          // MM
     let second: String          // SS
-    let period: String          // AM/PM
+    let period: String?         // AM/PM or nil for 24-hour format
     let sequenceNumber: String? // Optional sequence (1, 2, 3...)
     let fileExtension: String   // png, jpg, etc.
 
-    /// Convert 12-hour time to 24-hour format
+    /// Convert to 24-hour format
+    /// If period is nil, hour is already in 24-hour format
     func to24Hour() -> Int {
+        guard let period = period else {
+            return hour
+        }
+
         var hour24 = hour
 
         if period == "PM" && hour != 12 {

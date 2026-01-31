@@ -21,27 +21,28 @@ class PatternMatcher {
     }
 
     /// Build regex pattern for screenshot filenames
-    /// Pattern: Prefix YYYY-MM-DD at H.MM.SS AM/PM[ N].ext
+    /// Pattern: Prefix YYYY-MM-DD at H.MM.SS[ AM/PM][ N|(N)].ext
     /// - Parameter prefix: Screenshot prefix to match
     /// - Returns: Compiled regex pattern
     private static func buildPattern(prefix: String) -> NSRegularExpression {
         // Escape special regex characters in prefix
         let escapedPrefix = NSRegularExpression.escapedPattern(for: prefix)
 
-        // Build pattern string matching Python version
+        // Build pattern string
         // Group 1: date (YYYY-MM-DD)
-        // Group 2: hour (1-12)
+        // Group 2: hour (1-23)
         // Group 3: minute (MM)
         // Group 4: second (SS)
-        // Group 5: period (AM/PM)
-        // Group 6: sequence number (optional, for rapid screenshots)
-        // Group 7: extension (png, jpg, etc.)
+        // Group 5: period (AM/PM, optional — absent for 24-hour format)
+        // Group 6: bare sequence number (optional, e.g. " 2")
+        // Group 7: parenthesized sequence number (optional, e.g. " (2)")
+        // Group 8: extension (png, jpg, etc.)
         let patternString = """
         \(escapedPrefix) \
         (\\d{4}-\\d{2}-\\d{2}) at \
-        (\\d{1,2})\\.(\\d{2})\\.(\\d{2})\\s*\
-        ([APMapm]{2})\
-        (?: (\\d+))?\
+        (\\d{1,2})\\.(\\d{2})\\.(\\d{2})\
+        (?:\\s+([APMapm]{2}))?\
+        (?:\\s+(?:(\\d+)|\\((\\d+)\\)))?\
         \\.\
         (\\w+)
         """
@@ -66,6 +67,7 @@ class PatternMatcher {
         let range = NSRange(location: 0, length: nsString.length)
 
         guard let match = regex.firstMatch(in: filename, range: range) else {
+            DebugLogger.shared.log("No match for: \(filename)", category: "PatternMatcher")
             return nil
         }
 
@@ -74,19 +76,33 @@ class PatternMatcher {
         let hourString = nsString.substring(with: match.range(at: 2))
         let minute = nsString.substring(with: match.range(at: 3))
         let second = nsString.substring(with: match.range(at: 4))
-        let period = nsString.substring(with: match.range(at: 5)).uppercased()
 
-        // Sequence number is optional (group 6)
-        let sequenceNum: String? = match.range(at: 6).location != NSNotFound
-            ? nsString.substring(with: match.range(at: 6))
+        // Period is optional (group 5) — nil for 24-hour format
+        let period: String? = match.range(at: 5).location != NSNotFound
+            ? nsString.substring(with: match.range(at: 5)).uppercased()
             : nil
 
-        let ext = nsString.substring(with: match.range(at: 7))
+        // Sequence number: bare (group 6) or parenthesized (group 7)
+        let sequenceNum: String?
+        if match.range(at: 6).location != NSNotFound {
+            sequenceNum = nsString.substring(with: match.range(at: 6))
+        } else if match.range(at: 7).location != NSNotFound {
+            sequenceNum = nsString.substring(with: match.range(at: 7))
+        } else {
+            sequenceNum = nil
+        }
+
+        let ext = nsString.substring(with: match.range(at: 8))
 
         // Convert hour to integer
         guard let hour = Int(hourString) else {
             return nil
         }
+
+        DebugLogger.shared.log(
+            "Matched: \(filename) -> date=\(date) hour=\(hour) min=\(minute) sec=\(second) period=\(period ?? "nil") seq=\(sequenceNum ?? "nil") ext=\(ext)",
+            category: "PatternMatcher"
+        )
 
         return ScreenshotMatch(
             date: date,

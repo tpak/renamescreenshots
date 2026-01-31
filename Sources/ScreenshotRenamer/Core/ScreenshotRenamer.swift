@@ -41,6 +41,8 @@ class ScreenshotRenamer {
             options: [.skipsHiddenFiles]
         )
 
+        DebugLogger.shared.log("Scanning \(contents.count) items in \(settings.location.path)", category: "Renamer")
+
         var totalFiles = 0
         var renamedFiles = 0
         var errors: [String] = []
@@ -51,6 +53,7 @@ class ScreenshotRenamer {
 
             // Check if matches screenshot pattern
             guard let match = matcher.match(filename) else {
+                DebugLogger.shared.log("Skipped (no match): \(filename)", category: "Renamer")
                 continue
             }
 
@@ -61,15 +64,28 @@ class ScreenshotRenamer {
                 // Build new filename
                 let newFilename = match.buildNewFilename(prefix: settings.prefix)
 
+                // Skip if already correctly named (e.g. 24-hour files)
+                if newFilename == filename {
+                    DebugLogger.shared.log("Skipped (already renamed): \(filename)", category: "Renamer")
+                    continue
+                }
+
                 // Sanitize new filename
                 try validator.sanitizeFilename(newFilename)
 
-                // Find available filename (handle duplicates like macOS does)
-                let finalFilename = findAvailableFilename(
-                    newFilename,
-                    in: settings.location,
-                    fileManager: fileManager
-                )
+                let finalFilename: String
+                if filename.lowercased() == newFilename.lowercased() {
+                    // Case-only rename: on case-insensitive FS the file IS the target,
+                    // so skip duplicate detection and rename directly
+                    finalFilename = newFilename
+                } else {
+                    // Find available filename (handle duplicates like macOS does)
+                    finalFilename = findAvailableFilename(
+                        newFilename,
+                        in: settings.location,
+                        fileManager: fileManager
+                    )
+                }
 
                 // Build final URL
                 let newURL = settings.location.appendingPathComponent(finalFilename)
@@ -77,15 +93,19 @@ class ScreenshotRenamer {
                 // Perform rename
                 try fileManager.moveItem(at: fileURL, to: newURL)
 
+                DebugLogger.shared.log("Renamed: \(filename) -> \(finalFilename)", category: "Renamer")
                 os_log("Renamed: %{public}@ -> %{public}@",
                        log: .default, type: .info, filename, finalFilename)
                 renamedFiles += 1
             } catch {
+                DebugLogger.shared.log("Error renaming \(filename): \(error.localizedDescription)", category: "Renamer")
                 os_log("Error renaming %{public}@: %{public}@",
                        log: .default, type: .error, filename, error.localizedDescription)
                 errors.append("\(filename): \(error.localizedDescription)")
             }
         }
+
+        DebugLogger.shared.log("Complete: \(renamedFiles)/\(totalFiles) renamed, \(errors.count) errors", category: "Renamer")
 
         return RenameResult(
             totalFiles: totalFiles,
