@@ -172,6 +172,15 @@ class MenuBarController: NSObject {
         debugMenuItem.submenu = debugSubmenu
         menu.addItem(debugMenuItem)
 
+        // About
+        let aboutItem = NSMenuItem(
+            title: "About Screenshot Renamer",
+            action: #selector(showAbout),
+            keyEquivalent: ""
+        )
+        aboutItem.target = self
+        menu.addItem(aboutItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // Quit
@@ -767,7 +776,10 @@ class MenuBarController: NSObject {
             NSWorkspace.shared.activateFileViewerSelecting([url])
         } else {
             Task { @MainActor in
-                showAlert(title: "No Log File", message: "No debug log file exists yet. Enable debug logging and perform some actions first.")
+                showAlert(
+                    title: "No Log File",
+                    message: "No debug log file exists yet. Enable debug logging first."
+                )
             }
         }
     }
@@ -775,6 +787,32 @@ class MenuBarController: NSObject {
     /// Clear the debug log file
     @objc private func clearDebugLog() {
         DebugLogger.shared.clear()
+    }
+
+    // MARK: - About
+
+    /// Show the About dialog
+    @MainActor
+    @objc private func showAbout() {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+
+        let alert = NSAlert()
+        alert.messageText = "Screenshot Renamer"
+        alert.informativeText = """
+            Version \(version)
+
+            Automatically renames screenshots from 12-hour to 24-hour format.
+
+            © 2026 Chris Tirpak
+            MIT License
+
+            github.com/tpak/renamescreenshots
+            """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
     }
 
     // MARK: - Helper Methods

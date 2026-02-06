@@ -49,8 +49,10 @@ class DebugLoggerTests: XCTestCase {
         DebugLogger.shared.log("test message", category: "Test")
         DebugLogger.shared.flush()
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: testLogURL.path),
-                       "Log file should be created when logging is enabled")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: testLogURL.path),
+            "Log file should be created when logging is enabled"
+        )
     }
 
     func testNoLogWhenDisabled() {
@@ -58,8 +60,10 @@ class DebugLoggerTests: XCTestCase {
         DebugLogger.shared.log("should not appear", category: "Test")
         DebugLogger.shared.flush()
 
-        XCTAssertFalse(FileManager.default.fileExists(atPath: testLogURL.path),
-                        "Log file should not be created when logging is disabled")
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: testLogURL.path),
+            "Log file should not be created when logging is disabled"
+        )
     }
 
     func testLogEntryFormat() throws {
@@ -84,8 +88,10 @@ class DebugLoggerTests: XCTestCase {
         DebugLogger.shared.log("custom location test", category: "Test")
         DebugLogger.shared.flush()
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: customURL.path),
-                       "Log should be written to custom location")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: customURL.path),
+            "Log should be written to custom location"
+        )
 
         // Clean up
         try? FileManager.default.removeItem(at: customURL.deletingLastPathComponent())
@@ -99,13 +105,17 @@ class DebugLoggerTests: XCTestCase {
         DebugLogger.shared.log("to be cleared", category: "Test")
         DebugLogger.shared.flush()
 
-        XCTAssertTrue(FileManager.default.fileExists(atPath: testLogURL.path),
-                       "Log file should exist before clear")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: testLogURL.path),
+            "Log file should exist before clear"
+        )
 
         DebugLogger.shared.clear()
         DebugLogger.shared.flush()
 
-        XCTAssertFalse(FileManager.default.fileExists(atPath: testLogURL.path),
-                        "Log file should be removed after clear")
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: testLogURL.path),
+            "Log file should be removed after clear"
+        )
     }
 }

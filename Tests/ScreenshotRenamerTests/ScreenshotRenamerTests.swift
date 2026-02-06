@@ -167,10 +167,14 @@ class ScreenshotRenamerTests: XCTestCase {
         XCTAssertEqual(result.errors.count, 0)
 
         let expectedFile = testDir.appendingPathComponent("screenshot 2026-01-08 at 09.20.55 2.png")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedFile.path),
-                       "Renamed file with normalized sequence should exist")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: testFile.path),
-                        "Original file should not exist")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: expectedFile.path),
+            "Renamed file with normalized sequence should exist"
+        )
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: testFile.path),
+            "Original file should not exist"
+        )
     }
 
     // MARK: - 24-hour format skipping
@@ -185,8 +189,10 @@ class ScreenshotRenamerTests: XCTestCase {
         let result = try renamer.renameScreenshots()
 
         XCTAssertEqual(result.renamedFiles, 0, "Should skip already-correct 24-hour file")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: testFile.path),
-                       "File should remain unchanged")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: testFile.path),
+            "File should remain unchanged"
+        )
     }
 
     // MARK: - Uppercase prefix with 24-hour
@@ -203,8 +209,10 @@ class ScreenshotRenamerTests: XCTestCase {
         XCTAssertEqual(result.renamedFiles, 1, "Should rename uppercase-prefix 24-hour file")
 
         let expectedFile = testDir.appendingPathComponent("screenshot 2025-10-22 at 17.25.30.png")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: expectedFile.path),
-                       "Lowercased prefix file should exist")
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: expectedFile.path),
+            "Lowercased prefix file should exist"
+        )
     }
 
     // MARK: - Real-world batch rename
@@ -215,7 +223,7 @@ class ScreenshotRenamerTests: XCTestCase {
             "Screenshot 2026-01-08 at 9.20.55 am (2).png",
             "Screenshot 2025-10-22 at 17.25.30.png",
             "screenshot 2026-01-22 at 14.10.07.png",         // already correct
-            "Screenshot 2026-01-21 at 9.35.21 am (2).png",
+            "Screenshot 2026-01-21 at 9.35.21 am (2).png"
         ]
 
         for name in filenames {
@@ -236,13 +244,15 @@ class ScreenshotRenamerTests: XCTestCase {
             "screenshot 2026-01-08 at 09.20.55 2.png",
             "screenshot 2025-10-22 at 17.25.30.png",
             "screenshot 2026-01-22 at 14.10.07.png",
-            "screenshot 2026-01-21 at 09.35.21 2.png",
+            "screenshot 2026-01-21 at 09.35.21 2.png"
         ]
 
         for name in expectedFiles {
             let file = testDir.appendingPathComponent(name)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: file.path),
-                           "Expected file should exist: \(name)")
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: file.path),
+                "Expected file should exist: \(name)"
+            )
         }
     }
 }

@@ -31,3 +31,6 @@ DerivedData/
 
 # Generated release files (temporary files from workflows)
 release_notes.md
+
+# My local notes to myself
+build notes.txt

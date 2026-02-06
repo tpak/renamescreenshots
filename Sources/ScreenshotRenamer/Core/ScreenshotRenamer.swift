@@ -105,7 +105,10 @@ class ScreenshotRenamer {
             }
         }
 
-        DebugLogger.shared.log("Complete: \(renamedFiles)/\(totalFiles) renamed, \(errors.count) errors", category: "Renamer")
+        DebugLogger.shared.log(
+            "Complete: \(renamedFiles)/\(totalFiles) renamed, \(errors.count) errors",
+            category: "Renamer"
+        )
 
         return RenameResult(
             totalFiles: totalFiles,

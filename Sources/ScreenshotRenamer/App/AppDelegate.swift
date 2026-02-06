@@ -14,7 +14,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         print("🚀 Screenshot Renamer starting...")
         os_log("Screenshot Renamer starting", log: .default, type: .info)
-        DebugLogger.shared.log("App launching, debug logging \(DebugLogger.shared.isEnabled ? "enabled" : "disabled")", category: "App")
+        let debugStatus = DebugLogger.shared.isEnabled ? "enabled" : "disabled"
+        DebugLogger.shared.log("App launching, debug logging \(debugStatus)", category: "App")
 
         // Initialize menu bar BEFORE setting activation policy
         menuBarController = MenuBarController()
