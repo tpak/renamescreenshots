@@ -805,14 +805,19 @@ class MenuBarController: NSObject {
 
             © 2026 Chris Tirpak
             MIT License
-
-            github.com/tpak/renamescreenshots
             """
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "GitHub")
 
         NSApp.activate(ignoringOtherApps: true)
-        alert.runModal()
+        let response = alert.runModal()
+
+        if response == .alertSecondButtonReturn {
+            if let url = URL(string: "https://github.com/tpak/renamescreenshots") {
+                NSWorkspace.shared.open(url)
+            }
+        }
     }
 
     // MARK: - Helper Methods
