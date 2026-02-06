@@ -20,7 +20,9 @@
       "Bash(tree:*)",
       "Bash(swift test:*)",
       "Bash(./Scripts/build-app.sh:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
     ]
   }
 }

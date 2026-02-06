@@ -99,10 +99,10 @@ class PatternMatcher {
             return nil
         }
 
-        DebugLogger.shared.log(
-            "Matched: \(filename) -> date=\(date) hour=\(hour) min=\(minute) sec=\(second) period=\(period ?? "nil") seq=\(sequenceNum ?? "nil") ext=\(ext)",
-            category: "PatternMatcher"
-        )
+        let periodStr = period ?? "nil"
+        let seqStr = sequenceNum ?? "nil"
+        let details = "date=\(date) hour=\(hour) min=\(minute) sec=\(second) period=\(periodStr) seq=\(seqStr)"
+        DebugLogger.shared.log("Matched: \(filename) -> \(details) ext=\(ext)", category: "PatternMatcher")
 
         return ScreenshotMatch(
             date: date,

@@ -776,7 +776,10 @@ class MenuBarController: NSObject {
             NSWorkspace.shared.activateFileViewerSelecting([url])
         } else {
             Task { @MainActor in
-                showAlert(title: "No Log File", message: "No debug log file exists yet. Enable debug logging and perform some actions first.")
+                showAlert(
+                    title: "No Log File",
+                    message: "No debug log file exists yet. Enable debug logging first."
+                )
             }
         }
     }
