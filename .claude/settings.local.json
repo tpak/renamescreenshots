@@ -22,7 +22,8 @@
       "Bash(./Scripts/build-app.sh:*)",
       "Bash(git pull:*)",
       "Bash(git push:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(gh pr list:*)"
     ]
   }
 }
