@@ -4,6 +4,15 @@ This document contains GitHub issues that need to be created for SwiftLint viola
 
 **Total Violations:** 18 (18 serious)
 
+## Quick Start - Creating the Issues
+
+**Recommended: Use the automated script**
+```bash
+./.github/ISSUE_TEMPLATES_SWIFTLINT/create-all-issues.sh
+```
+
+This will create all 4 issues automatically using the GitHub CLI. See [.github/ISSUE_TEMPLATES_SWIFTLINT/README.md](.github/ISSUE_TEMPLATES_SWIFTLINT/README.md) for alternative methods.
+
 ---
 
 ## Issue 1: Fix Line Length Violations (4 files)
