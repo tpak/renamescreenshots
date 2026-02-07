@@ -36,29 +36,31 @@ Requires macOS 11.0+ and Swift 5.7+. No external dependencies.
 
 - **Auto-rename** — watches for new screenshots via FSEvents, renames in real-time
 - **Quick Rename** — batch rename existing screenshots in one click
-- **Screenshot Settings** — control macOS screenshot preferences from the menu:
-  - Save location, filename prefix
-  - Thumbnail preview, mouse pointer, window shadow toggles
-  - Include date in filename toggle
+- **Unified Settings** — all preferences in one dialog:
+  - Save location (editable field or folder picker)
+  - Thumbnail preview, mouse pointer, window shadow, date in filename toggles
+  - Launch at login
   - Format (PNG/JPG/PDF/TIFF)
+  - Debug logging with custom log location
   - Reset to defaults
-- **Launch at Login** — native SMAppService on macOS 13+, LaunchAgent on older versions
-- **Debug Logging** — optional file-based logging for diagnostics
-- **264KB binary** — native Swift, no dependencies, instant startup
+- **Menu Quick-Reference** — current settings displayed in menu bar dropdown
+- **Single Instance** — prevents duplicate app instances from running
+- **Native App Icon** — camera icon displays in Finder and About dialog
+- **Lightweight** — native Swift, no dependencies, instant startup
 
 ## Usage
 
-The camera icon in your menu bar provides:
+Click the camera icon in your menu bar:
 
 | Menu Item | Description |
 |-----------|-------------|
 | Stop/Start Watcher | Toggle automatic renaming |
 | Quick Rename... | Rename all existing screenshots now |
-| Change Location... | Set system screenshot save folder |
-| Screenshot Settings | Submenu for all macOS screenshot preferences |
-| Debug | Enable/disable debug logging, set log location |
-| Launch at Login | Toggle auto-start |
+| Settings... | Open the unified settings dialog |
+| About | App version and GitHub link |
 | Quit | Exit the app |
+
+Below the menu items, you'll see a quick-reference display of your current settings (location, prefix, format, options, debug status).
 
 The app auto-detects your macOS screenshot location and prefix via `com.apple.screencapture` defaults.
 
@@ -67,6 +69,9 @@ The app auto-detects your macOS screenshot location and prefix via `com.apple.sc
 ```bash
 swift test    # Run all 74 tests
 swift build   # Debug build
+./Scripts/build-app.sh          # Build release app bundle
+./Scripts/build-app.sh --bump   # Build and increment patch version
+./Scripts/bump-version.sh minor # Manually bump minor version
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development workflow and release process.
@@ -74,8 +79,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development workflow and rel
 ## Uninstallation
 
 ```bash
-pkill -9 ScreenshotRenamer
-rm -rf /Applications/ScreenshotRenamer.app
+pkill ScreenshotRenamer; rm -rf /Applications/ScreenshotRenamer.app
 ```
 
 ## License

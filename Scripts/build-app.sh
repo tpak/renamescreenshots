@@ -1,7 +1,23 @@
 #!/bin/bash
 set -e
 
+# Parse arguments
+BUMP_VERSION=false
+for arg in "$@"; do
+    case $arg in
+        --bump)
+            BUMP_VERSION=true
+            shift
+            ;;
+    esac
+done
+
 echo "🔨 Building Screenshot Renamer..."
+
+# Auto-increment patch version if --bump flag is passed
+if [ "$BUMP_VERSION" = true ]; then
+    ./Scripts/bump-version.sh patch
+fi
 
 # Read version from VERSION file
 if [ ! -f "VERSION" ]; then
@@ -21,9 +37,6 @@ cp "$PLIST_PATH" "$PLIST_PATH.backup"
 # Build release binary
 swift build -c release
 
-# Restore original Info.plist
-mv "$PLIST_PATH.backup" "$PLIST_PATH"
-
 # Create .app bundle structure
 APP_NAME="ScreenshotRenamer.app"
 APP_DIR="$APP_NAME/Contents"
@@ -35,8 +48,14 @@ mkdir -p "$APP_DIR/Resources"
 cp .build/release/ScreenshotRenamer "$APP_DIR/MacOS/"
 chmod +x "$APP_DIR/MacOS/ScreenshotRenamer"
 
-# Copy Info.plist
+# Copy Info.plist (with version injected) to app bundle
 cp Sources/ScreenshotRenamer/Resources/Info.plist "$APP_DIR/"
+
+# Restore original Info.plist in source tree
+mv "$PLIST_PATH.backup" "$PLIST_PATH"
+
+# Copy app icon
+cp Sources/ScreenshotRenamer/Resources/AppIcon.icns "$APP_DIR/Resources/"
 
 # Code sign (ad-hoc for local use)
 codesign --force --deep --sign - "$APP_NAME"
