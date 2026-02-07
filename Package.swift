@@ -14,7 +14,7 @@ let package = Package(
         .executableTarget(
             name: "ScreenshotRenamer",
             dependencies: [],
-            exclude: ["Resources/Info.plist"]
+            exclude: ["Resources/Info.plist", "Resources/AppIcon.icns"]
         ),
         .testTarget(
             name: "ScreenshotRenamerTests",

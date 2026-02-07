@@ -67,6 +67,12 @@ class ScreenshotDetectorTests: XCTestCase {
     func testSetSystemLocationInvalidPath() {
         let detector = ScreenshotDetector()
 
+        // Store original location to restore later
+        let originalLocation = detector.detectSettings().location
+        defer {
+            _ = detector.setSystemLocation(originalLocation)
+        }
+
         // Try to set a non-existent path
         let invalidPath = URL(fileURLWithPath: "/nonexistent/path/\(UUID().uuidString)")
 

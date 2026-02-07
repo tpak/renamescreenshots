@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleName</key>
 	<string>Screenshot Renamer</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.tirpak.screenshot-renamer</string>
 	<key>CFBundleVersion</key>

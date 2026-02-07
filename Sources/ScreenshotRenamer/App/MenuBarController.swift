@@ -10,7 +10,7 @@ import Cocoa
 import UserNotifications
 import os.log
 
-// swiftlint:disable type_body_length file_length function_body_length attributes
+// swiftlint:disable type_body_length function_body_length attributes
 
 /// Controls the menu bar icon and menu
 class MenuBarController: NSObject {
@@ -23,19 +23,14 @@ class MenuBarController: NSObject {
     // Menu items (strong references)
     private var watcherMenuItem: NSMenuItem!
     private var quickRenameMenuItem: NSMenuItem!
-    private var launchAtLoginMenuItem: NSMenuItem!
     private var locationMenuItem: NSMenuItem!
     private var prefixMenuItem: NSMenuItem!
+    private var formatMenuItem: NSMenuItem!
+    private var optionsMenuItem: NSMenuItem!
+    private var debugMenuItem: NSMenuItem!
 
-    // Settings submenu items
-    private var showThumbnailMenuItem: NSMenuItem!
-    private var includeCursorMenuItem: NSMenuItem!
-    private var disableShadowMenuItem: NSMenuItem!
-    private var includeDateMenuItem: NSMenuItem!
-    private var formatMenuItems: [ScreenshotFormat: NSMenuItem] = [:]
-
-    // Debug submenu items
-    private var debugEnableMenuItem: NSMenuItem!
+    // Settings window
+    private var settingsWindowController: SettingsWindowController?
 
     override init() {
         super.init()
@@ -114,40 +109,18 @@ class MenuBarController: NSObject {
 
         menu.addItem(NSMenuItem.separator())
 
-        // Change location
-        let changeLocationItem = NSMenuItem(
-            title: "Change Location...",
-            action: #selector(changeLocation),
-            keyEquivalent: "l"
+        // Settings
+        let settingsItem = NSMenuItem(
+            title: "Settings...",
+            action: #selector(openSettings),
+            keyEquivalent: ","
         )
-        changeLocationItem.target = self
-        menu.addItem(changeLocationItem)
-
-        // Screenshot Settings submenu
-        let settingsSubmenu = buildSettingsSubmenu()
-        let settingsMenuItem = NSMenuItem(
-            title: "Screenshot Settings",
-            action: nil,
-            keyEquivalent: ""
-        )
-        settingsMenuItem.submenu = settingsSubmenu
-        menu.addItem(settingsMenuItem)
+        settingsItem.target = self
+        menu.addItem(settingsItem)
 
         menu.addItem(NSMenuItem.separator())
 
-        // Launch at Login toggle
-        launchAtLoginMenuItem = NSMenuItem(
-            title: "Launch at Login",
-            action: #selector(toggleLaunchAtLogin),
-            keyEquivalent: ""
-        )
-        launchAtLoginMenuItem.target = self
-        launchAtLoginMenuItem.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
-        menu.addItem(launchAtLoginMenuItem)
-
-        menu.addItem(NSMenuItem.separator())
-
-        // Info items (non-clickable)
+        // Info items (non-clickable, grey text)
         locationMenuItem = NSMenuItem(
             title: "Location: ...",
             action: nil,
@@ -162,15 +135,28 @@ class MenuBarController: NSObject {
         )
         menu.addItem(prefixMenuItem)
 
-        // Debug submenu
-        let debugSubmenu = buildDebugSubmenu()
-        let debugMenuItem = NSMenuItem(
-            title: "Debug",
+        formatMenuItem = NSMenuItem(
+            title: "Format: ...",
             action: nil,
             keyEquivalent: ""
         )
-        debugMenuItem.submenu = debugSubmenu
+        menu.addItem(formatMenuItem)
+
+        optionsMenuItem = NSMenuItem(
+            title: "Options: ...",
+            action: nil,
+            keyEquivalent: ""
+        )
+        menu.addItem(optionsMenuItem)
+
+        debugMenuItem = NSMenuItem(
+            title: "Debug: Off",
+            action: nil,
+            keyEquivalent: ""
+        )
         menu.addItem(debugMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
 
         // About
         let aboutItem = NSMenuItem(
@@ -195,94 +181,6 @@ class MenuBarController: NSObject {
         statusItem.menu = menu
     }
 
-    /// Build the screenshot settings submenu
-    private func buildSettingsSubmenu() -> NSMenu {
-        let submenu = NSMenu()
-
-        // Detect current preferences
-        let prefs = detector.detectPreferences()
-
-        // Show Thumbnail Preview toggle
-        showThumbnailMenuItem = NSMenuItem(
-            title: "Show Thumbnail Preview",
-            action: #selector(toggleShowThumbnail),
-            keyEquivalent: ""
-        )
-        showThumbnailMenuItem.target = self
-        showThumbnailMenuItem.state = prefs.showThumbnail ? .on : .off
-        submenu.addItem(showThumbnailMenuItem)
-
-        // Include Mouse Pointer toggle
-        includeCursorMenuItem = NSMenuItem(
-            title: "Include Mouse Pointer",
-            action: #selector(toggleIncludeCursor),
-            keyEquivalent: ""
-        )
-        includeCursorMenuItem.target = self
-        includeCursorMenuItem.state = prefs.includeCursor ? .on : .off
-        submenu.addItem(includeCursorMenuItem)
-
-        // Disable Window Shadow toggle
-        disableShadowMenuItem = NSMenuItem(
-            title: "Disable Window Shadow",
-            action: #selector(toggleDisableShadow),
-            keyEquivalent: ""
-        )
-        disableShadowMenuItem.target = self
-        disableShadowMenuItem.state = prefs.disableShadow ? .on : .off
-        submenu.addItem(disableShadowMenuItem)
-
-        // Include Date in Filename toggle
-        includeDateMenuItem = NSMenuItem(
-            title: "Include Date in Filename",
-            action: #selector(toggleIncludeDate),
-            keyEquivalent: ""
-        )
-        includeDateMenuItem.target = self
-        includeDateMenuItem.state = prefs.includeDate ? .on : .off
-        submenu.addItem(includeDateMenuItem)
-
-        submenu.addItem(NSMenuItem.separator())
-
-        // Screenshot Format submenu
-        let formatSubmenu = NSMenu()
-        let formats: [ScreenshotFormat] = [.png, .jpg, .pdf, .tiff]
-
-        for format in formats {
-            let formatItem = NSMenuItem(
-                title: format.rawValue.uppercased(),
-                action: #selector(setScreenshotFormat(_:)),
-                keyEquivalent: ""
-            )
-            formatItem.target = self
-            formatItem.representedObject = format
-            formatItem.state = (format == prefs.format) ? .on : .off
-            formatSubmenu.addItem(formatItem)
-            formatMenuItems[format] = formatItem
-        }
-
-        let formatMenuItem = NSMenuItem(
-            title: "Screenshot Format",
-            action: nil,
-            keyEquivalent: ""
-        )
-        formatMenuItem.submenu = formatSubmenu
-        submenu.addItem(formatMenuItem)
-
-        submenu.addItem(NSMenuItem.separator())
-
-        // Reset to Defaults
-        let resetItem = NSMenuItem(
-            title: "Reset to Defaults",
-            action: #selector(resetScreenshotSettings),
-            keyEquivalent: ""
-        )
-        resetItem.target = self
-        submenu.addItem(resetItem)
-
-        return submenu
-    }
-
     /// Load screenshot settings from macOS
     private func loadSettings() {
         print("⚙️  Loading settings...")
@@ -296,6 +194,22 @@ class MenuBarController: NSObject {
     private func updateInfoMenuItems() {
         locationMenuItem.title = "Location: \(shortenPath(settings.location.path))"
         prefixMenuItem.title = "Prefix: \(settings.prefix)"
+
+        // Update format
+        let prefs = detector.detectPreferences()
+        formatMenuItem.title = "Format: \(prefs.format.rawValue.uppercased())"
+
+        // Update options summary
+        var options: [String] = []
+        options.append(prefs.showThumbnail ? "Thumb" : "No Thumb")
+        options.append(prefs.includeCursor ? "Cursor" : "No Cursor")
+        options.append(prefs.disableShadow ? "No Shadow" : "Shadow")
+        options.append(prefs.includeDate ? "Date" : "No Date")
+        options.append(LaunchAtLoginManager.shared.isEnabled ? "Auto-start" : "No Auto-start")
+        optionsMenuItem.title = options.joined(separator: " | ")
+
+        // Update debug status
+        debugMenuItem.title = "Debug: \(DebugLogger.shared.isEnabled ? "On" : "Off")"
     }
 
     /// Shorten path for display
@@ -410,75 +324,29 @@ class MenuBarController: NSObject {
         }
     }
 
-    /// Change screenshot location
+    /// Open settings window
     @MainActor
-    @objc private func changeLocation() {
-        let panel = NSOpenPanel()
-        panel.title = "Choose Screenshot Folder"
-        panel.message = "Select where system screenshots (⌘⇧4) will be saved"
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.canCreateDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.directoryURL = settings.location // Start at current location
-
-        // Show "Reset to Default" button
-        panel.showsResizeIndicator = true
-        panel.showsHiddenFiles = false
-
-        let response = panel.runModal()
-
-        if response == .OK, let selectedURL = panel.url {
-            // Change system screenshot location
-            guard detector.setSystemLocation(selectedURL) else {
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change system screenshot location. Please check permissions."
-                )
-                return
-            }
-
-            // Restart SystemUIServer to apply changes
-            restartSystemUIServerWithErrorHandling()
-
-            // Stop watcher before reloading settings
-            // Use watcher's actual state to avoid race condition
-            let wasRunning = watcher?.isRunning ?? false
-            if wasRunning {
-                stopWatcher()
-            }
-
-            // Reload settings (will now read from updated system location)
-            loadSettings()
-
-            // Restart watcher with new location
-            if wasRunning {
-                do {
-                    try startWatcher()
-                    showNotification(
-                        title: "System Location Changed",
-                        message: "Screenshots will now save to: \(shortenPath(selectedURL.path))"
-                    )
-                } catch {
-                    showAlert(
-                        title: "Error",
-                        message: "Failed to restart watcher: \(error.localizedDescription)"
-                    )
+    @objc private func openSettings() {
+        if settingsWindowController == nil {
+            settingsWindowController = SettingsWindowController(
+                detector: detector,
+                onSettingsChanged: { [weak self] in
+                    self?.reloadSettingsAfterChange()
                 }
-            } else {
-                let message = """
-                    System screenshot location updated to:
-                    \(selectedURL.path)
+            )
+        }
+        settingsWindowController?.showWindow()
+    }
 
-                    New screenshots (⌘⇧4) will save here.
-
-                    Start the watcher to begin monitoring.
-                    """
-                showAlert(title: "System Location Changed", message: message)
-            }
-
-            os_log("System screenshot location changed to: %{public}@",
-                   log: .default, type: .info, selectedURL.path)
+    /// Reload settings after changes from settings window
+    private func reloadSettingsAfterChange() {
+        let wasRunning = watcher?.isRunning ?? false
+        if wasRunning {
+            stopWatcher()
+        }
+        loadSettings()
+        if wasRunning {
+            try? startWatcher()
         }
     }
 
@@ -489,304 +357,6 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
-    }
-
-    /// Toggle launch at login
-    @MainActor
-    @objc private func toggleLaunchAtLogin() {
-        let result = LaunchAtLoginManager.shared.toggle()
-
-        switch result {
-        case .success(let isEnabled):
-            launchAtLoginMenuItem.state = isEnabled ? .on : .off
-            showNotification(
-                title: "Launch at Login \(isEnabled ? "Enabled" : "Disabled")",
-                message: isEnabled
-                    ? "Screenshot Renamer will launch automatically when you log in"
-                    : "Screenshot Renamer will not launch automatically"
-            )
-            os_log("Launch at login %{public}@",
-                   log: .default, type: .info, isEnabled ? "enabled" : "disabled")
-
-        case .failure(let error):
-            showAlert(
-                title: "Launch at Login Error",
-                message: error.localizedDescription
-            )
-            os_log("Failed to toggle launch at login: %{public}@",
-                   log: .default, type: .error, error.localizedDescription)
-        }
-    }
-
-    // MARK: - Screenshot Settings Actions
-
-    /// Toggle show thumbnail preview
-    @MainActor
-    @objc private func toggleShowThumbnail() {
-        let currentState = showThumbnailMenuItem.state == .on
-        let newState = !currentState
-
-        guard detector.setShowThumbnail(newState) else {
-            Task { @MainActor in
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change thumbnail preview setting"
-                )
-            }
-            return
-        }
-
-        showThumbnailMenuItem.state = newState ? .on : .off
-        restartSystemUIServerWithErrorHandling()
-
-        showNotification(
-            title: "Thumbnail Preview \(newState ? "Enabled" : "Disabled")",
-            message: newState
-                ? "Screenshots will show preview thumbnail"
-                : "Screenshots will save immediately"
-        )
-    }
-
-    /// Toggle include cursor in screenshots
-    @MainActor
-    @objc private func toggleIncludeCursor() {
-        let currentState = includeCursorMenuItem.state == .on
-        let newState = !currentState
-
-        guard detector.setIncludeCursor(newState) else {
-            Task { @MainActor in
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change cursor setting"
-                )
-            }
-            return
-        }
-
-        includeCursorMenuItem.state = newState ? .on : .off
-        restartSystemUIServerWithErrorHandling()
-
-        showNotification(
-            title: "Mouse Pointer \(newState ? "Enabled" : "Disabled")",
-            message: newState
-                ? "Screenshots will include the mouse pointer"
-                : "Screenshots will not include the mouse pointer"
-        )
-    }
-
-    /// Toggle disable shadow on window screenshots
-    @MainActor
-    @objc private func toggleDisableShadow() {
-        let currentState = disableShadowMenuItem.state == .on
-        let newState = !currentState
-
-        guard detector.setDisableShadow(newState) else {
-            Task { @MainActor in
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change shadow setting"
-                )
-            }
-            return
-        }
-
-        disableShadowMenuItem.state = newState ? .on : .off
-        restartSystemUIServerWithErrorHandling()
-
-        showNotification(
-            title: "Window Shadow \(newState ? "Disabled" : "Enabled")",
-            message: newState
-                ? "Window screenshots will not have drop shadow"
-                : "Window screenshots will have drop shadow"
-        )
-    }
-
-    /// Toggle include date in filename
-    @MainActor
-    @objc private func toggleIncludeDate() {
-        let currentState = includeDateMenuItem.state == .on
-        let newState = !currentState
-
-        guard detector.setIncludeDate(newState) else {
-            Task { @MainActor in
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change date setting"
-                )
-            }
-            return
-        }
-
-        includeDateMenuItem.state = newState ? .on : .off
-        restartSystemUIServerWithErrorHandling()
-
-        showNotification(
-            title: "Filename Date \(newState ? "Enabled" : "Disabled")",
-            message: newState
-                ? "Screenshots will include date and time in filename"
-                : "Screenshots will use sequential numbering (Screenshot.png, Screenshot 1.png, ...)"
-        )
-    }
-
-    /// Set screenshot format
-    @MainActor
-    @objc private func setScreenshotFormat(_ sender: NSMenuItem) {
-        guard let format = sender.representedObject as? ScreenshotFormat else {
-            return
-        }
-
-        guard detector.setFormat(format) else {
-            Task { @MainActor in
-                showAlert(
-                    title: "Error",
-                    message: "Failed to change screenshot format"
-                )
-            }
-            return
-        }
-
-        // Update checkmarks
-        for (formatKey, menuItem) in formatMenuItems {
-            menuItem.state = (formatKey == format) ? .on : .off
-        }
-
-        restartSystemUIServerWithErrorHandling()
-
-        showNotification(
-            title: "Format Changed",
-            message: "Screenshots will now save as \(format.rawValue.uppercased())"
-        )
-    }
-
-    /// Reset all screenshot settings to macOS defaults
-    @MainActor
-    @objc private func resetScreenshotSettings() {
-        let alert = NSAlert()
-        alert.messageText = "Reset Screenshot Settings?"
-        alert.informativeText = """
-            This will reset all screenshot preferences to macOS defaults:
-            • Show thumbnail preview: ON
-            • Include mouse pointer: OFF
-            • Window shadow: ON
-            • Format: PNG
-            """
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Reset")
-        alert.addButton(withTitle: "Cancel")
-
-        NSApp.activate(ignoringOtherApps: true)
-        let response = alert.runModal()
-
-        if response == .alertFirstButtonReturn {
-            guard detector.resetToDefaults() else {
-                showAlert(
-                    title: "Error",
-                    message: "Failed to reset screenshot settings"
-                )
-                return
-            }
-
-            // Update menu items to reflect defaults
-            let defaults = ScreenshotPreferences.defaults
-            showThumbnailMenuItem.state = defaults.showThumbnail ? .on : .off
-            includeCursorMenuItem.state = defaults.includeCursor ? .on : .off
-            disableShadowMenuItem.state = defaults.disableShadow ? .on : .off
-            includeDateMenuItem.state = defaults.includeDate ? .on : .off
-
-            for (formatKey, menuItem) in formatMenuItems {
-                menuItem.state = (formatKey == defaults.format) ? .on : .off
-            }
-
-            showNotification(
-                title: "Settings Reset",
-                message: "All screenshot preferences restored to defaults"
-            )
-        }
-    }
-
-    // MARK: - Debug Submenu
-
-    /// Build the debug submenu
-    private func buildDebugSubmenu() -> NSMenu {
-        let submenu = NSMenu()
-
-        debugEnableMenuItem = NSMenuItem(
-            title: "Enable Debug Logging",
-            action: #selector(toggleDebugLogging),
-            keyEquivalent: ""
-        )
-        debugEnableMenuItem.target = self
-        debugEnableMenuItem.state = DebugLogger.shared.isEnabled ? .on : .off
-        submenu.addItem(debugEnableMenuItem)
-
-        let setLocationItem = NSMenuItem(
-            title: "Set Log Location...",
-            action: #selector(setDebugLogLocation),
-            keyEquivalent: ""
-        )
-        setLocationItem.target = self
-        submenu.addItem(setLocationItem)
-
-        let openLogItem = NSMenuItem(
-            title: "Open Log File",
-            action: #selector(openDebugLog),
-            keyEquivalent: ""
-        )
-        openLogItem.target = self
-        submenu.addItem(openLogItem)
-
-        let clearLogItem = NSMenuItem(
-            title: "Clear Log",
-            action: #selector(clearDebugLog),
-            keyEquivalent: ""
-        )
-        clearLogItem.target = self
-        submenu.addItem(clearLogItem)
-
-        return submenu
-    }
-
-    /// Toggle debug logging on/off
-    @MainActor
-    @objc private func toggleDebugLogging() {
-        DebugLogger.shared.isEnabled.toggle()
-        debugEnableMenuItem.state = DebugLogger.shared.isEnabled ? .on : .off
-        DebugLogger.shared.log("Debug logging enabled", category: "App")
-    }
-
-    /// Set a custom log file location via NSSavePanel
-    @MainActor
-    @objc private func setDebugLogLocation() {
-        let panel = NSSavePanel()
-        panel.title = "Choose Debug Log Location"
-        panel.nameFieldStringValue = "debug.log"
-        panel.allowedContentTypes = [.log, .plainText]
-        panel.directoryURL = DebugLogger.shared.logFileURL.deletingLastPathComponent()
-
-        let response = panel.runModal()
-        if response == .OK, let url = panel.url {
-            DebugLogger.shared.logFileURL = url
-        }
-    }
-
-    /// Reveal the log file in Finder
-    @objc private func openDebugLog() {
-        let url = DebugLogger.shared.logFileURL
-        if FileManager.default.fileExists(atPath: url.path) {
-            NSWorkspace.shared.activateFileViewerSelecting([url])
-        } else {
-            Task { @MainActor in
-                showAlert(
-                    title: "No Log File",
-                    message: "No debug log file exists yet. Enable debug logging first."
-                )
-            }
-        }
-    }
-
-    /// Clear the debug log file
-    @objc private func clearDebugLog() {
-        DebugLogger.shared.clear()
     }
 
     // MARK: - About
@@ -807,6 +377,15 @@ class MenuBarController: NSObject {
             MIT License
             """
         alert.alertStyle = .informational
+
+        // Set camera icon
+        if let icon = NSImage(systemSymbolName: "camera.fill", accessibilityDescription: "Screenshot Renamer") {
+            let config = NSImage.SymbolConfiguration(pointSize: 48, weight: .regular)
+            if let configuredIcon = icon.withSymbolConfiguration(config) {
+                alert.icon = configuredIcon
+            }
+        }
+
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "GitHub")
 
@@ -817,20 +396,6 @@ class MenuBarController: NSObject {
             if let url = URL(string: "https://github.com/tpak/renamescreenshots") {
                 NSWorkspace.shared.open(url)
             }
-        }
-    }
-
-    // MARK: - Helper Methods
-
-    /// Restart SystemUIServer and warn user if it fails
-    /// SystemUIServer restart is needed for screenshot preferences to take effect
-    @MainActor
-    private func restartSystemUIServerWithErrorHandling() {
-        if !ShellExecutor.restartSystemUIServer() {
-            // Non-blocking warning - user should be aware but it's not critical
-            os_log("SystemUIServer restart failed", log: .default, type: .error)
-            // Note: Not showing alert to avoid disrupting user flow
-            // Settings are still written, just may not take effect until restart
         }
     }
 

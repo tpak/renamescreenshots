@@ -12,6 +12,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Check if another instance is already running
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.tirpak.screenshot-renamer"
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        if runningApps.count > 1 {
+            print("⚠️ Another instance is already running. Exiting.")
+            os_log("Another instance already running, terminating", log: .default, type: .info)
+            NSApp.terminate(nil)
+            return
+        }
+
         print("🚀 Screenshot Renamer starting...")
         os_log("Screenshot Renamer starting", log: .default, type: .info)
         let debugStatus = DebugLogger.shared.isEnabled ? "enabled" : "disabled"
