@@ -35,11 +35,11 @@ class DebugLogger {
         }
     }
 
-    /// Default log location: ~/Library/Logs/ScreenshotRenamer/debug.log
+    /// Default log location: ~/Library/Logs/ScreenshotRenamer/screenshotrenamer-debug.log
     static var defaultLogFileURL: URL {
         let logsDir = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Logs/ScreenshotRenamer")
-        return logsDir.appendingPathComponent("debug.log")
+        return logsDir.appendingPathComponent("screenshotrenamer-debug.log")
     }
 
     private init() {}
