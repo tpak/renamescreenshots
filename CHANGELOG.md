@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.1] - 2026-02-08
 
+### Fixed
+- **Reset to Defaults** now properly resets screenshot location to Desktop and prefix to "Screenshot"
+
 ### Changed
 - Default debug log renamed from `debug.log` to `screenshotrenamer-debug.log` to distinguish from other logs in `~/Library/Logs/`
 
