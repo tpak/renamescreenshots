@@ -22,7 +22,7 @@ class DebugLoggerTests: XCTestCase {
         // Set up test log file
         testLogURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("debug-logger-test-\(UUID().uuidString)")
-            .appendingPathComponent("debug.log")
+            .appendingPathComponent("screenshotrenamer-debug.log")
 
         DebugLogger.shared.logFileURL = testLogURL
         DebugLogger.shared.isEnabled = false

@@ -481,7 +481,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private func setDebugLogLocation() {
         let panel = NSSavePanel()
         panel.title = "Choose Debug Log Location"
-        panel.nameFieldStringValue = "debug.log"
+        panel.nameFieldStringValue = "screenshotrenamer-debug.log"
         panel.allowedContentTypes = [.log, .plainText]
         panel.directoryURL = DebugLogger.shared.logFileURL.deletingLastPathComponent()
 

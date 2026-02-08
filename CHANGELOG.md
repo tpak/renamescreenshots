@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-02-08
+
+### Fixed
+- **Reset to Defaults** now properly resets screenshot location to Desktop and prefix to "Screenshot"
+
+### Changed
+- Default debug log renamed from `debug.log` to `screenshotrenamer-debug.log` to distinguish from other logs in `~/Library/Logs/`
+
 ## [1.1.0] - 2026-02-07
 
 ### Added
@@ -74,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tpak/renamescreenshots/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tpak/renamescreenshots/releases/tag/v1.0.0

@@ -227,62 +227,66 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setIncludeDate(originalPrefs.includeDate)
     }
 
-    func testResetToDefaults() {
+    func testResetToDefaultsResetsLocationAndPrefix() {
         let detector = ScreenshotDetector()
+        let originalSettings = detector.detectSettings()
+        let defaultLocation = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
 
-        // Store original preferences
+        // Create temp dir and change location/prefix
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("reset-test-\(UUID().uuidString)")
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        _ = detector.setSystemLocation(tempDir)
+        _ = detector.setPrefix("TestPrefix")
+
+        // Verify changes applied
+        let changed = detector.detectSettings()
+        XCTAssertEqual(changed.location.standardizedFileURL, tempDir.standardizedFileURL)
+        XCTAssertEqual(changed.prefix, "TestPrefix")
+
+        // Reset and verify location/prefix
+        XCTAssertTrue(detector.resetToDefaults(), "Reset should succeed")
+        let reset = detector.detectSettings()
+        XCTAssertEqual(reset.location.standardizedFileURL, defaultLocation.standardizedFileURL, "Location → Desktop")
+        XCTAssertEqual(reset.prefix, "Screenshot", "Prefix → Screenshot")
+
+        // Restore original
+        _ = detector.setSystemLocation(originalSettings.location)
+        _ = detector.setPrefix(originalSettings.prefix)
+    }
+
+    func testResetToDefaultsResetsPreferences() {
+        let detector = ScreenshotDetector()
         let originalPrefs = detector.detectPreferences()
 
-        // Change all settings to non-default values
+        // Change all preferences to non-default values
         _ = detector.setShowThumbnail(false)
         _ = detector.setIncludeCursor(true)
         _ = detector.setDisableShadow(true)
         _ = detector.setFormat(.jpg)
         _ = detector.setIncludeDate(false)
 
-        // Verify they were changed
-        let changedPrefs = detector.detectPreferences()
-        XCTAssertFalse(changedPrefs.showThumbnail)
-        XCTAssertTrue(changedPrefs.includeCursor)
-        XCTAssertTrue(changedPrefs.disableShadow)
-        XCTAssertEqual(changedPrefs.format, .jpg)
-        XCTAssertFalse(changedPrefs.includeDate)
+        // Verify changes applied
+        let changed = detector.detectPreferences()
+        XCTAssertFalse(changed.showThumbnail)
+        XCTAssertTrue(changed.includeCursor)
+        XCTAssertTrue(changed.disableShadow)
+        XCTAssertEqual(changed.format, .jpg)
+        XCTAssertFalse(changed.includeDate)
 
-        // Reset to defaults
-        let success = detector.resetToDefaults()
-        XCTAssertTrue(success, "Reset to defaults should succeed")
+        // Reset and verify preferences
+        XCTAssertTrue(detector.resetToDefaults(), "Reset should succeed")
+        let reset = detector.detectPreferences()
+        let defaults = ScreenshotPreferences.defaults
 
-        // Verify defaults
-        let resetPrefs = detector.detectPreferences()
-        let expectedDefaults = ScreenshotPreferences.defaults
+        XCTAssertEqual(reset.showThumbnail, defaults.showThumbnail, "Show thumbnail → true")
+        XCTAssertEqual(reset.includeCursor, defaults.includeCursor, "Include cursor → false")
+        XCTAssertEqual(reset.disableShadow, defaults.disableShadow, "Disable shadow → false")
+        XCTAssertEqual(reset.format, defaults.format, "Format → png")
+        XCTAssertEqual(reset.includeDate, defaults.includeDate, "Include date → true")
 
-        XCTAssertEqual(
-            resetPrefs.showThumbnail,
-            expectedDefaults.showThumbnail,
-            "Show thumbnail should be reset to default (true)"
-        )
-        XCTAssertEqual(
-            resetPrefs.includeCursor,
-            expectedDefaults.includeCursor,
-            "Include cursor should be reset to default (false)"
-        )
-        XCTAssertEqual(
-            resetPrefs.disableShadow,
-            expectedDefaults.disableShadow,
-            "Disable shadow should be reset to default (false)"
-        )
-        XCTAssertEqual(
-            resetPrefs.format,
-            expectedDefaults.format,
-            "Format should be reset to default (png)"
-        )
-        XCTAssertEqual(
-            resetPrefs.includeDate,
-            expectedDefaults.includeDate,
-            "Include date should be reset to default (true)"
-        )
-
-        // Restore original preferences
+        // Restore original
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
         _ = detector.setIncludeCursor(originalPrefs.includeCursor)
         _ = detector.setDisableShadow(originalPrefs.disableShadow)

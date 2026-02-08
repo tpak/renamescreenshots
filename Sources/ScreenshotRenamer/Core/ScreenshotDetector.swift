@@ -121,12 +121,25 @@ class ScreenshotDetector {
         )
     }
 
+    /// Set screenshot filename prefix
+    /// - Parameter prefix: The prefix for screenshot filenames (e.g., "Screenshot")
+    /// - Returns: True if successful
+    func setPrefix(_ prefix: String) -> Bool {
+        return ShellExecutor.writeDefaults(
+            domain: "com.apple.screencapture",
+            key: "name",
+            value: prefix
+        )
+    }
+
     /// Reset all screenshot preferences to macOS defaults
     /// - Returns: True if all resets successful
     func resetToDefaults() -> Bool {
         let defaults = ScreenshotPreferences.defaults
 
         let results = [
+            setSystemLocation(defaultLocation()),
+            setPrefix("Screenshot"),
             setShowThumbnail(defaults.showThumbnail),
             setIncludeCursor(defaults.includeCursor),
             setDisableShadow(defaults.disableShadow),
