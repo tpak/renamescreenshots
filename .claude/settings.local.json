@@ -23,7 +23,11 @@
       "Bash(git pull:*)",
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
-      "Bash(gh pr list:*)"
+      "Bash(gh pr list:*)",
+      "Bash(./Scripts/bump-version.sh:*)",
+      "Bash(git fetch:*)",
+      "Bash(git tag:*)",
+      "Bash(gh pr view:*)"
     ]
   }
 }
