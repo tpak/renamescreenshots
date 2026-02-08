@@ -12,12 +12,11 @@
 name: "CodeQL Advanced"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # Run weekly only (Wednesday at 3:17 AM UTC) - analysis is slow
   schedule:
     - cron: '17 3 * * 3'
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   analyze:
