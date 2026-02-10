@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-02-11
+
+### Fixed
+- **Watcher race condition** — FSEvents could trigger multiple concurrent directory scans, causing "file doesn't exist" errors when two scans tried to rename the same file (#13)
+- Replaced per-file `Task {}` with debounced `DispatchWorkItem` that coalesces rapid events into a single rename operation
+
 ## [1.1.1] - 2026-02-08
 
 ### Fixed
@@ -82,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tpak/renamescreenshots/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/tpak/renamescreenshots/releases/tag/v1.0.0

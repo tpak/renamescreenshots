@@ -22,6 +22,7 @@ class ScreenshotWatcher {
         label: "com.screenshot-renamer.processing",
         qos: .utility
     )
+    private var debounceWorkItem: DispatchWorkItem?
 
     /// Initialize watcher with settings
     /// - Parameter settings: Screenshot settings
@@ -107,22 +108,27 @@ class ScreenshotWatcher {
         streamRef = nil
         isRunning = false
 
-        // Wait for any pending operations in the processing queue to complete
-        // This prevents race conditions where old tasks process with stale settings
+        // Cancel any pending debounced rename and wait for in-flight operations
         processingQueue.sync {
-            // Barrier: ensures all previously queued async tasks complete
+            self.debounceWorkItem?.cancel()
+            self.debounceWorkItem = nil
         }
 
         DebugLogger.shared.log("Stopped watching", category: "Watcher")
         os_log("Stopped watching", log: .default, type: .info)
     }
 
-    /// Handle file system events
+    /// Handle file system events with debouncing
+    ///
+    /// Rapid FSEvents (temp files, multiple screenshots) are coalesced into a single
+    /// rename operation. Each event resets a 300ms timer; when it fires, one full scan
+    /// runs. This prevents concurrent scans from racing on the same files.
     /// - Parameter paths: Paths of changed files
     private func handleFileEvents(_ paths: [String]) {
         processingQueue.async { [weak self] in
             guard let self = self else { return }
 
+            var hasMatch = false
             for path in paths {
                 let url = URL(fileURLWithPath: path)
                 let filename = url.lastPathComponent
@@ -141,25 +147,38 @@ class ScreenshotWatcher {
                 DebugLogger.shared.log("Detected screenshot: \(filename)", category: "Watcher")
                 os_log("Detected screenshot: %{public}@",
                        log: .default, type: .info, filename)
+                hasMatch = true
+            }
 
-                // Small delay to ensure file is fully written
-                // macOS creates .Screenshot then renames to Screenshot
-                // Use Task.sleep instead of Thread.sleep to avoid blocking
-                Task {
-                    try? await Task.sleep(nanoseconds: 150_000_000) // 0.15 seconds
+            guard hasMatch else { return }
 
-                    do {
-                        let result = try self.renamer.renameScreenshots()
-                        if result.renamedFiles > 0 {
-                            os_log("Auto-renamed: %d files",
-                                   log: .default, type: .info, result.renamedFiles)
-                        }
-                    } catch {
-                        os_log("Error processing %{public}@: %{public}@",
-                               log: .default, type: .error, filename, error.localizedDescription)
+            // Cancel any previously scheduled rename — we'll reschedule with a fresh delay
+            self.debounceWorkItem?.cancel()
+
+            let workItem = DispatchWorkItem { [weak self] in
+                guard let self = self else { return }
+                do {
+                    let result = try self.renamer.renameScreenshots()
+                    if result.renamedFiles > 0 {
+                        DebugLogger.shared.log(
+                            "Auto-renamed \(result.renamedFiles) file(s)",
+                            category: "Watcher"
+                        )
+                        os_log("Auto-renamed: %d files",
+                               log: .default, type: .info, result.renamedFiles)
                     }
+                } catch {
+                    os_log("Error renaming screenshots: %{public}@",
+                           log: .default, type: .error, error.localizedDescription)
                 }
             }
+
+            self.debounceWorkItem = workItem
+            // 300ms delay: lets macOS finish writing the file and coalesces rapid events
+            self.processingQueue.asyncAfter(
+                deadline: .now() + 0.3,
+                execute: workItem
+            )
         }
     }
 
