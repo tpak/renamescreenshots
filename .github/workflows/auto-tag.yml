@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   auto-tag:
@@ -37,3 +38,11 @@ jobs:
           git tag -a "v${{ steps.version.outputs.version }}" \
             -m "v${{ steps.version.outputs.version }}"
           git push origin "v${{ steps.version.outputs.version }}"
+
+      - name: Trigger release workflow
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run "Release Versioned Build" \
+            -f tag="v${{ steps.version.outputs.version }}"

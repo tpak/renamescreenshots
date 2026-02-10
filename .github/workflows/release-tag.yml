@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.1.2)'
+        required: true
 
 permissions:
   contents: write
@@ -13,20 +18,25 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for changelog generation
-
-      - name: Extract version from tag
+      - name: Determine tag name
         id: get_version
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ github.event.inputs.tag }}"
+          else
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          fi
           VERSION=${TAG_NAME#v}
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           echo "📌 Tag: $TAG_NAME"
           echo "📌 Version: $VERSION"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.get_version.outputs.TAG_NAME }}
+          fetch-depth: 0  # Fetch all history for changelog generation
 
       - name: Verify VERSION file matches tag
         run: |
