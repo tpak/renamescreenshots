@@ -208,10 +208,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Create or update gh-pages branch with appcast.xml
+          # Save appcast before switching branches
+          cp appcast.xml /tmp/appcast.xml
           git checkout --orphan gh-pages-temp
           git rm -rf . 2>/dev/null || true
-          mv appcast.xml .
+          cp /tmp/appcast.xml appcast.xml
           git add appcast.xml
           git commit -m "Update appcast for v${{ steps.get_version.outputs.VERSION }}"
           git push origin gh-pages-temp:gh-pages --force
