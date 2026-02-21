@@ -19,4 +19,9 @@ class UpdateManager {
             userDriverDelegate: nil
         )
     }
+
+    var automaticallyChecksForUpdates: Bool {
+        get { updaterController.updater.automaticallyChecksForUpdates }
+        set { updaterController.updater.automaticallyChecksForUpdates = newValue }
+    }
 }

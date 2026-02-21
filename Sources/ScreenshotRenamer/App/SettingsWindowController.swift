@@ -12,6 +12,7 @@ import UniformTypeIdentifiers
 
 class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private let detector: ScreenshotDetector
+    private let updateManager: UpdateManager
     private var onSettingsChanged: (() -> Void)?
 
     // UI Elements
@@ -23,17 +24,19 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private var launchAtLoginCheckbox: NSButton!
     private var formatPopup: NSPopUpButton!
     private var captureDelayPopup: NSPopUpButton!
+    private var autoCheckUpdatesCheckbox: NSButton!
 
     // Debug UI Elements
     private var debugEnableCheckbox: NSButton!
     private var debugLogPathLabel: NSTextField!
 
-    init(detector: ScreenshotDetector, onSettingsChanged: (() -> Void)? = nil) {
+    init(detector: ScreenshotDetector, updateManager: UpdateManager, onSettingsChanged: (() -> Void)? = nil) {
         self.detector = detector
+        self.updateManager = updateManager
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 510),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 535),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -153,6 +156,16 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             action: #selector(toggleLaunchAtLogin)
         )
         contentView.addSubview(launchAtLoginCheckbox)
+
+        currentY -= 22
+
+        autoCheckUpdatesCheckbox = createCheckbox(
+            "Automatically check for updates",
+            x: controlX,
+            y: currentY,
+            action: #selector(toggleAutoCheckUpdates)
+        )
+        contentView.addSubview(autoCheckUpdatesCheckbox)
 
         currentY -= 30
 
@@ -317,6 +330,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         disableShadowCheckbox.state = prefs.disableShadow ? .on : .off
         includeDateCheckbox.state = prefs.includeDate ? .on : .off
         launchAtLoginCheckbox.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
+        autoCheckUpdatesCheckbox.state = updateManager.automaticallyChecksForUpdates ? .on : .off
 
         switch prefs.format {
         case .png: formatPopup.selectItem(withTitle: "PNG")
@@ -459,6 +473,12 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             launchAtLoginCheckbox.state = currentState ? .on : .off
             showError(error.localizedDescription)
         }
+        onSettingsChanged?()
+    }
+
+    @objc
+    private func toggleAutoCheckUpdates() {
+        updateManager.automaticallyChecksForUpdates = autoCheckUpdatesCheckbox.state == .on
         onSettingsChanged?()
     }
 

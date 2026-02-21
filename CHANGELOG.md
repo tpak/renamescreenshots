@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-02-21
+
+### Added
+- **Auto-update toggle** in Settings — "Automatically check for updates" checkbox (defaults to on)
+- Auto-update status shown in menu bar options summary
+
+### Fixed
+- App crash on launch due to missing `@loader_path/../Frameworks` rpath for embedded Sparkle.framework
+- Tests now properly restore all user preferences after `testResetToDefaultsResetsLocationAndPrefix` (previously only restored location/prefix, leaving other settings at defaults)
+
 ## [1.3.0] - 2026-02-21
 
 ### Added
@@ -104,7 +114,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/tpak/renamescreenshots/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...v1.1.2

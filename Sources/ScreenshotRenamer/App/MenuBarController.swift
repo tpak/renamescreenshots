@@ -223,6 +223,7 @@ class MenuBarController: NSObject {
             options.append("\(prefs.captureDelay)s Delay")
         }
         options.append(LaunchAtLoginManager.shared.isEnabled ? "Auto-start" : "No Auto-start")
+        options.append(updateManager.automaticallyChecksForUpdates ? "Auto-update" : "No Auto-update")
         optionsMenuItem.title = options.joined(separator: " | ")
 
         // Update debug status
@@ -347,6 +348,7 @@ class MenuBarController: NSObject {
         if settingsWindowController == nil {
             settingsWindowController = SettingsWindowController(
                 detector: detector,
+                updateManager: updateManager,
                 onSettingsChanged: { [weak self] in
                     self?.reloadSettingsAfterChange()
                 }

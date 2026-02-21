@@ -256,6 +256,7 @@ class ScreenshotDetectorTests: XCTestCase {
     func testResetToDefaultsResetsLocationAndPrefix() {
         let detector = ScreenshotDetector()
         let originalSettings = detector.detectSettings()
+        let originalPrefs = detector.detectPreferences()
         let defaultLocation = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Desktop")
 
         // Create temp dir and change location/prefix
@@ -277,9 +278,15 @@ class ScreenshotDetectorTests: XCTestCase {
         XCTAssertEqual(reset.location.standardizedFileURL, defaultLocation.standardizedFileURL, "Location → Desktop")
         XCTAssertEqual(reset.prefix, "Screenshot", "Prefix → Screenshot")
 
-        // Restore original
+        // Restore all originals (resetToDefaults resets everything)
         _ = detector.setSystemLocation(originalSettings.location)
         _ = detector.setPrefix(originalSettings.prefix)
+        _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
+        _ = detector.setIncludeCursor(originalPrefs.includeCursor)
+        _ = detector.setDisableShadow(originalPrefs.disableShadow)
+        _ = detector.setFormat(originalPrefs.format)
+        _ = detector.setIncludeDate(originalPrefs.includeDate)
+        _ = detector.setCaptureDelay(originalPrefs.captureDelay)
     }
 
     func testResetToDefaultsResetsPreferences() {
