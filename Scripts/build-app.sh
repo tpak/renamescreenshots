@@ -57,6 +57,17 @@ mv "$PLIST_PATH.backup" "$PLIST_PATH"
 # Copy app icon
 cp Sources/ScreenshotRenamer/Resources/AppIcon.icns "$APP_DIR/Resources/"
 
+# Embed Sparkle framework
+mkdir -p "$APP_DIR/Frameworks"
+SPARKLE_FRAMEWORK=$(find .build/artifacts -name "Sparkle.framework" -type d | head -1)
+if [ -n "$SPARKLE_FRAMEWORK" ]; then
+    cp -R "$SPARKLE_FRAMEWORK" "$APP_DIR/Frameworks/"
+    echo "✅ Embedded Sparkle.framework"
+else
+    echo "❌ ERROR: Sparkle.framework not found in build artifacts"
+    exit 1
+fi
+
 # Code sign (ad-hoc for local use)
 codesign --force --deep --sign - "$APP_NAME"
 

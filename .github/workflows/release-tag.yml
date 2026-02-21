@@ -84,6 +84,47 @@ jobs:
           cat ScreenshotRenamer.zip.sha256
           cat ScreenshotRenamer.dmg.sha256
 
+      - name: Download Sparkle tools
+        run: |
+          SPARKLE_VERSION="2.8.1"
+          curl -L -o Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
+          mkdir -p sparkle-tools
+          tar -xf Sparkle.tar.xz -C sparkle-tools
+          echo "✅ Downloaded Sparkle ${SPARKLE_VERSION} tools"
+
+      - name: Sign update and generate appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          SIGN_OUTPUT=$(echo "$SPARKLE_PRIVATE_KEY" | ./sparkle-tools/bin/sign_update ScreenshotRenamer.zip --ed-key-file -)
+          ED_SIGNATURE=$(echo "$SIGN_OUTPUT" | grep -o 'sparkle:edSignature="[^"]*"' | cut -d'"' -f2)
+          FILE_LENGTH=$(echo "$SIGN_OUTPUT" | grep -o 'length="[^"]*"' | cut -d'"' -f2)
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          TAG=${{ steps.get_version.outputs.TAG_NAME }}
+          PUB_DATE=$(date -R)
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/ScreenshotRenamer.zip"
+
+          cat > appcast.xml <<EOF
+          <?xml version="1.0" standalone="yes"?>
+          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+            <channel>
+              <title>Screenshot Renamer</title>
+              <item>
+                <title>Version ${VERSION}</title>
+                <pubDate>${PUB_DATE}</pubDate>
+                <sparkle:version>${VERSION}</sparkle:version>
+                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
+                <enclosure url="${DOWNLOAD_URL}"
+                           sparkle:edSignature="${ED_SIGNATURE}"
+                           length="${FILE_LENGTH}"
+                           type="application/octet-stream" />
+              </item>
+            </channel>
+          </rss>
+          EOF
+          echo "✅ Generated appcast.xml with EdDSA signature"
+
       - name: Generate changelog
         id: changelog
         run: |
@@ -162,6 +203,19 @@ jobs:
             ScreenshotRenamer.zip.sha256 \
             ScreenshotRenamer.dmg \
             ScreenshotRenamer.dmg.sha256
+
+      - name: Deploy appcast to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Create or update gh-pages branch with appcast.xml
+          git checkout --orphan gh-pages-temp
+          git rm -rf . 2>/dev/null || true
+          mv appcast.xml .
+          git add appcast.xml
+          git commit -m "Update appcast for v${{ steps.get_version.outputs.VERSION }}"
+          git push origin gh-pages-temp:gh-pages --force
+          echo "✅ Deployed appcast.xml to GitHub Pages"
 
       - name: Release summary
         run: |

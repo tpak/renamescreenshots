@@ -10,10 +10,13 @@ let package = Package(
             targets: ["ScreenshotRenamer"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.0.0")
+    ],
     targets: [
         .executableTarget(
             name: "ScreenshotRenamer",
-            dependencies: [],
+            dependencies: ["Sparkle"],
             exclude: ["Resources/Info.plist", "Resources/AppIcon.icns"]
         ),
         .testTarget(
