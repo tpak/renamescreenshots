@@ -227,6 +227,32 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setIncludeDate(originalPrefs.includeDate)
     }
 
+    func testSetCaptureDelay() {
+        let detector = ScreenshotDetector()
+
+        // Store original value
+        let originalPrefs = detector.detectPreferences()
+
+        // Try each valid delay value
+        let testDelays = [5, 10, 0]
+
+        for delay in testDelays {
+            let success = detector.setCaptureDelay(delay)
+            XCTAssertTrue(success, "Setting capture delay to \(delay) should succeed")
+
+            // Read back and verify
+            let updatedPrefs = detector.detectPreferences()
+            XCTAssertEqual(
+                updatedPrefs.captureDelay,
+                delay,
+                "Capture delay should be updated to \(delay)"
+            )
+        }
+
+        // Restore original value
+        _ = detector.setCaptureDelay(originalPrefs.captureDelay)
+    }
+
     func testResetToDefaultsResetsLocationAndPrefix() {
         let detector = ScreenshotDetector()
         let originalSettings = detector.detectSettings()
@@ -266,6 +292,7 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setDisableShadow(true)
         _ = detector.setFormat(.jpg)
         _ = detector.setIncludeDate(false)
+        _ = detector.setCaptureDelay(10)
 
         // Verify changes applied
         let changed = detector.detectPreferences()
@@ -274,6 +301,7 @@ class ScreenshotDetectorTests: XCTestCase {
         XCTAssertTrue(changed.disableShadow)
         XCTAssertEqual(changed.format, .jpg)
         XCTAssertFalse(changed.includeDate)
+        XCTAssertEqual(changed.captureDelay, 10)
 
         // Reset and verify preferences
         XCTAssertTrue(detector.resetToDefaults(), "Reset should succeed")
@@ -285,6 +313,7 @@ class ScreenshotDetectorTests: XCTestCase {
         XCTAssertEqual(reset.disableShadow, defaults.disableShadow, "Disable shadow → false")
         XCTAssertEqual(reset.format, defaults.format, "Format → png")
         XCTAssertEqual(reset.includeDate, defaults.includeDate, "Include date → true")
+        XCTAssertEqual(reset.captureDelay, defaults.captureDelay, "Capture delay → 0")
 
         // Restore original
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
@@ -292,6 +321,7 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setDisableShadow(originalPrefs.disableShadow)
         _ = detector.setFormat(originalPrefs.format)
         _ = detector.setIncludeDate(originalPrefs.includeDate)
+        _ = detector.setCaptureDelay(originalPrefs.captureDelay)
     }
 
     func testPreferencesPersistence() {
@@ -304,6 +334,7 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setShowThumbnail(false)
         _ = detector.setIncludeCursor(true)
         _ = detector.setIncludeDate(false)
+        _ = detector.setCaptureDelay(5)
 
         // Create new detector instance (simulates app restart)
         let detector2 = ScreenshotDetector()
@@ -322,10 +353,16 @@ class ScreenshotDetectorTests: XCTestCase {
             persistedPrefs.includeDate,
             "Include date should persist across detector instances"
         )
+        XCTAssertEqual(
+            persistedPrefs.captureDelay,
+            5,
+            "Capture delay should persist across detector instances"
+        )
 
         // Restore original
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
         _ = detector.setIncludeCursor(originalPrefs.includeCursor)
         _ = detector.setIncludeDate(originalPrefs.includeDate)
+        _ = detector.setCaptureDelay(originalPrefs.captureDelay)
     }
 }

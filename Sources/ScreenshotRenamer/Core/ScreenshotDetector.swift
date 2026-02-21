@@ -56,13 +56,15 @@ class ScreenshotDetector {
         let disableShadow = detectDisableShadow()
         let format = detectFormat()
         let includeDate = detectIncludeDate()
+        let captureDelay = detectCaptureDelay()
 
         return ScreenshotPreferences(
             showThumbnail: showThumbnail,
             includeCursor: includeCursor,
             disableShadow: disableShadow,
             format: format,
-            includeDate: includeDate
+            includeDate: includeDate,
+            captureDelay: captureDelay
         )
     }
 
@@ -121,6 +123,17 @@ class ScreenshotDetector {
         )
     }
 
+    /// Set capture delay (timer before screenshot)
+    /// - Parameter seconds: Delay in seconds (0=none, 5, or 10)
+    /// - Returns: True if successful
+    func setCaptureDelay(_ seconds: Int) -> Bool {
+        return ShellExecutor.writeIntDefaults(
+            domain: "com.apple.screencapture",
+            key: "captureDelay",
+            value: seconds
+        )
+    }
+
     /// Set screenshot filename prefix
     /// - Parameter prefix: The prefix for screenshot filenames (e.g., "Screenshot")
     /// - Returns: True if successful
@@ -144,7 +157,8 @@ class ScreenshotDetector {
             setIncludeCursor(defaults.includeCursor),
             setDisableShadow(defaults.disableShadow),
             setFormat(defaults.format),
-            setIncludeDate(defaults.includeDate)
+            setIncludeDate(defaults.includeDate),
+            setCaptureDelay(defaults.captureDelay)
         ]
 
         let success = results.allSatisfy { $0 }
@@ -209,6 +223,16 @@ class ScreenshotDetector {
             return true // Default is true
         }
         return output == "1" || output.lowercased() == "true"
+    }
+
+    private func detectCaptureDelay() -> Int {
+        guard let output = ShellExecutor.readDefaults(
+            domain: "com.apple.screencapture",
+            key: "captureDelay"
+        ) else {
+            return 0 // Default is no delay
+        }
+        return Int(output) ?? 0
     }
 
     /// Detect screenshot save location
