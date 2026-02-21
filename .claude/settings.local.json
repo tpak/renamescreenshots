@@ -1,33 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip install:*)",
-      "Bash(pytest:*)",
-      "Bash(python:*)",
-      "Bash(git add:*)",
+      "Bash(curl *)",
+      "Bash(defaults *)",
+      "Bash(ditto *)",
+      "Bash(gh *)",
+      "Bash(git *)",
+      "Bash(mkdir *)",
+      "Bash(open *)",
+      "Bash(pkill *)",
+      "Bash(swift *)",
+      "Bash(swiftc *)",
+      "Bash(./Scripts/*)",
       "WebFetch(domain:github.com)",
-      "Bash(git checkout:*)",
-      "Bash(git commit:*)",
-      "Bash(mkdir:*)",
-      "Bash(find:*)",
-      "Bash(swiftc:*)",
-      "Bash(swift build:*)",
-      "Bash(cd /Users/chris/source/renamescreenshots/ScreenshotRenamer && swift test_rename.swift:*)",
-      "Bash(open:*)",
-      "Bash(log show --predicate 'process == \"\"ScreenshotRenamer\"\"' --last 30s --style compact)",
-      "Bash(pkill:*)",
-      "Bash(./build-app.sh:*)",
-      "Bash(tree:*)",
-      "Bash(swift test:*)",
-      "Bash(./Scripts/build-app.sh:*)",
-      "Bash(git pull:*)",
-      "Bash(git push:*)",
-      "Bash(gh pr create:*)",
-      "Bash(gh pr list:*)",
-      "Bash(./Scripts/bump-version.sh:*)",
-      "Bash(git fetch:*)",
-      "Bash(git tag:*)",
-      "Bash(gh pr view:*)"
+      "WebFetch(domain:sparkle-project.org)",
+      "WebFetch(domain:tpak.github.io)",
+      "WebSearch"
     ]
   }
 }
