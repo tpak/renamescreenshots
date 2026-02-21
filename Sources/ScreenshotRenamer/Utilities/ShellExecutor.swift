@@ -82,6 +82,31 @@ class ShellExecutor {
         }
     }
 
+    /// Execute `defaults write` command for integer values
+    /// - Parameters:
+    ///   - domain: The defaults domain (e.g., "com.apple.screencapture")
+    ///   - key: The preference key (e.g., "captureDelay")
+    ///   - value: Integer value to write
+    /// - Returns: True if write succeeded, false otherwise
+    static func writeIntDefaults(domain: String, key: String, value: Int) -> Bool {
+        do {
+            _ = try runCommand(
+                executable: "/usr/bin/defaults",
+                arguments: ["write", domain, key, "-int", String(value)],
+                timeout: 5.0
+            )
+            os_log("Successfully wrote int defaults %{public}@.%{public}@ = %d",
+                   log: .default, type: .info,
+                   domain, key, value)
+            return true
+        } catch {
+            os_log("Failed to write int defaults %{public}@.%{public}@: %{public}@",
+                   log: .default, type: .error,
+                   domain, key, error.localizedDescription)
+            return false
+        }
+    }
+
     /// Restart SystemUIServer to apply screenshot location changes
     /// - Returns: True if restart succeeded, false otherwise
     static func restartSystemUIServer() -> Bool {

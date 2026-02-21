@@ -22,6 +22,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private var includeDateCheckbox: NSButton!
     private var launchAtLoginCheckbox: NSButton!
     private var formatPopup: NSPopUpButton!
+    private var captureDelayPopup: NSPopUpButton!
 
     // Debug UI Elements
     private var debugEnableCheckbox: NSButton!
@@ -32,7 +33,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 480),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 510),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -164,6 +165,18 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         formatPopup.target = self
         formatPopup.action = #selector(formatChanged)
         contentView.addSubview(formatPopup)
+
+        currentY -= 30
+
+        // --- Capture Delay Row ---
+        let delayLabel = createLabel("Capture Delay:", x: margin, y: currentY)
+        contentView.addSubview(delayLabel)
+
+        captureDelayPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 120, height: 25))
+        captureDelayPopup.addItems(withTitles: ["None", "5 Seconds", "10 Seconds"])
+        captureDelayPopup.target = self
+        captureDelayPopup.action = #selector(captureDelayChanged)
+        contentView.addSubview(captureDelayPopup)
 
         currentY -= 30
 
@@ -310,6 +323,12 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         case .jpg: formatPopup.selectItem(withTitle: "JPG")
         case .pdf: formatPopup.selectItem(withTitle: "PDF")
         case .tiff: formatPopup.selectItem(withTitle: "TIFF")
+        }
+
+        switch prefs.captureDelay {
+        case 5: captureDelayPopup.selectItem(withTitle: "5 Seconds")
+        case 10: captureDelayPopup.selectItem(withTitle: "10 Seconds")
+        default: captureDelayPopup.selectItem(withTitle: "None")
         }
 
         // Debug settings
@@ -459,6 +478,23 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         guard detector.setFormat(format) else {
             loadCurrentSettings()
             showError("Failed to change format.")
+            return
+        }
+        restartSystemUIServer()
+        onSettingsChanged?()
+    }
+
+    @objc
+    private func captureDelayChanged() {
+        let delay: Int
+        switch captureDelayPopup.indexOfSelectedItem {
+        case 1: delay = 5
+        case 2: delay = 10
+        default: delay = 0
+        }
+        guard detector.setCaptureDelay(delay) else {
+            loadCurrentSettings()
+            showError("Failed to change capture delay.")
             return
         }
         restartSystemUIServer()

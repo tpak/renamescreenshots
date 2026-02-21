@@ -22,19 +22,22 @@ struct ScreenshotPreferences {
     let disableShadow: Bool
     let format: ScreenshotFormat
     let includeDate: Bool
+    let captureDelay: Int
 
     init(
         showThumbnail: Bool = true,
         includeCursor: Bool = false,
         disableShadow: Bool = false,
         format: ScreenshotFormat = .png,
-        includeDate: Bool = true
+        includeDate: Bool = true,
+        captureDelay: Int = 0
     ) {
         self.showThumbnail = showThumbnail
         self.includeCursor = includeCursor
         self.disableShadow = disableShadow
         self.format = format
         self.includeDate = includeDate
+        self.captureDelay = captureDelay
     }
 
     /// Default macOS screenshot preferences
@@ -44,7 +47,8 @@ struct ScreenshotPreferences {
             includeCursor: false,
             disableShadow: false,
             format: .png,
-            includeDate: true
+            includeDate: true,
+            captureDelay: 0
         )
     }
 }

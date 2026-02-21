@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-21
+
+### Added
+- **Capture Delay** setting in Settings dialog — set a timer (None, 5 Seconds, 10 Seconds) before screenshot capture, matching macOS Screenshot utility's Timer option
+- Capture delay shown in menu bar options summary when enabled (e.g., "5s Delay")
+- `writeIntDefaults()` utility for integer macOS defaults values
+
 ## [1.1.2] - 2026-02-11
 
 ### Fixed
@@ -88,7 +95,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/tpak/renamescreenshots/compare/v1.0.0...v1.1.0

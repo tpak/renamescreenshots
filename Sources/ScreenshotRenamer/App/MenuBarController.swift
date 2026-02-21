@@ -205,6 +205,9 @@ class MenuBarController: NSObject {
         options.append(prefs.includeCursor ? "Cursor" : "No Cursor")
         options.append(prefs.disableShadow ? "No Shadow" : "Shadow")
         options.append(prefs.includeDate ? "Date" : "No Date")
+        if prefs.captureDelay > 0 {
+            options.append("\(prefs.captureDelay)s Delay")
+        }
         options.append(LaunchAtLoginManager.shared.isEnabled ? "Auto-start" : "No Auto-start")
         optionsMenuItem.title = options.joined(separator: " | ")
 
