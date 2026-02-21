@@ -44,9 +44,10 @@ rm -rf "$APP_NAME"
 mkdir -p "$APP_DIR/MacOS"
 mkdir -p "$APP_DIR/Resources"
 
-# Copy binary
+# Copy binary and fix rpath for embedded frameworks
 cp .build/release/ScreenshotRenamer "$APP_DIR/MacOS/"
 chmod +x "$APP_DIR/MacOS/ScreenshotRenamer"
+install_name_tool -add_rpath @loader_path/../Frameworks "$APP_DIR/MacOS/ScreenshotRenamer"
 
 # Copy Info.plist (with version injected) to app bundle
 cp Sources/ScreenshotRenamer/Resources/Info.plist "$APP_DIR/"
