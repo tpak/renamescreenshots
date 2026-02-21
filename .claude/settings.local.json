@@ -1,21 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl *)",
-      "Bash(defaults *)",
-      "Bash(ditto *)",
-      "Bash(gh *)",
-      "Bash(git *)",
-      "Bash(mkdir *)",
-      "Bash(open *)",
-      "Bash(pkill *)",
-      "Bash(swift *)",
-      "Bash(swiftc *)",
       "Bash(./Scripts/*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:sparkle-project.org)",
-      "WebFetch(domain:tpak.github.io)",
-      "WebSearch"
+      "WebFetch(domain:tpak.github.io)"
     ]
   }
 }
