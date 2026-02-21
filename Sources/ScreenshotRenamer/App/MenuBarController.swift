@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import Sparkle
 import UserNotifications
 import os.log
 
@@ -32,12 +33,16 @@ class MenuBarController: NSObject {
     // Settings window
     private var settingsWindowController: SettingsWindowController?
 
+    // Auto-update
+    private var updateManager: UpdateManager!
+
     override init() {
         super.init()
         print("📋 MenuBarController initializing...")
 
         // Initialize detector first (needed by buildMenu)
         detector = ScreenshotDetector()
+        updateManager = UpdateManager()
 
         setupMenuBar()
         requestNotificationPermissions()
@@ -117,6 +122,15 @@ class MenuBarController: NSObject {
         )
         settingsItem.target = self
         menu.addItem(settingsItem)
+
+        // Check for updates
+        let checkForUpdatesItem = NSMenuItem(
+            title: "Check for Updates...",
+            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+            keyEquivalent: ""
+        )
+        checkForUpdatesItem.target = updateManager.updaterController
+        menu.addItem(checkForUpdatesItem)
 
         menu.addItem(NSMenuItem.separator())
 
