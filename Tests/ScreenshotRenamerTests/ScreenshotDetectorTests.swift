@@ -253,6 +253,28 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setCaptureDelay(originalPrefs.captureDelay)
     }
 
+    func testSetPrefix() {
+        let detector = ScreenshotDetector()
+
+        // Store original prefix
+        let originalSettings = detector.detectSettings()
+
+        // Set a custom prefix
+        let success = detector.setPrefix("TestPrefix")
+        XCTAssertTrue(success, "Setting prefix should succeed")
+
+        // Read back and verify
+        let updatedSettings = detector.detectSettings()
+        XCTAssertEqual(
+            updatedSettings.prefix,
+            "TestPrefix",
+            "Prefix should be updated to TestPrefix"
+        )
+
+        // Restore original prefix
+        _ = detector.setPrefix(originalSettings.prefix)
+    }
+
     func testResetToDefaultsResetsLocationAndPrefix() {
         let detector = ScreenshotDetector()
         let originalSettings = detector.detectSettings()

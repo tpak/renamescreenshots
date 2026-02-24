@@ -132,6 +132,15 @@ class MenuBarController: NSObject {
         checkForUpdatesItem.target = updateManager.updaterController
         menu.addItem(checkForUpdatesItem)
 
+        // User Guide
+        let userGuideItem = NSMenuItem(
+            title: "User Guide",
+            action: #selector(openUserGuide),
+            keyEquivalent: ""
+        )
+        userGuideItem.target = self
+        menu.addItem(userGuideItem)
+
         menu.addItem(NSMenuItem.separator())
 
         // Info items (non-clickable, grey text)
@@ -376,6 +385,15 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
+    }
+
+    // MARK: - User Guide
+
+    /// Open the user guide in the default browser
+    @objc private func openUserGuide() {
+        if let url = URL(string: "https://tpak.github.io/renamescreenshots/") {
+            NSWorkspace.shared.open(url)
+        }
     }
 
     // MARK: - About
