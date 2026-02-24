@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot Renamer — User Guide</title>
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #1d1d1f;
+            --muted: #6e6e73;
+            --accent: #0071e3;
+            --code-bg: #f5f5f7;
+            --border: #d2d2d7;
+            --section-bg: #fbfbfd;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1d1d1f;
+                --fg: #f5f5f7;
+                --muted: #a1a1a6;
+                --accent: #2997ff;
+                --code-bg: #2c2c2e;
+                --border: #424245;
+                --section-bg: #232325;
+            }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        h1 .icon { font-size: 1.2em; margin-right: 8px; }
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+        p { margin-bottom: 12px; }
+        ul, ol { margin-bottom: 12px; padding-left: 24px; }
+        li { margin-bottom: 6px; }
+        code {
+            font-family: "SF Mono", Menlo, monospace;
+            font-size: 0.9em;
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .example {
+            background: var(--section-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            font-family: "SF Mono", Menlo, monospace;
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+        .example .arrow { color: var(--accent); font-weight: 600; }
+        kbd {
+            display: inline-block;
+            padding: 2px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 0.85em;
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            box-shadow: 0 1px 0 var(--border);
+        }
+        .setting-name { font-weight: 600; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        footer {
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.85em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1><span class="icon">📷</span> Screenshot Renamer</h1>
+<p class="subtitle">User Guide</p>
+
+<!-- What It Does -->
+<h2>What It Does</h2>
+<p>
+    Screenshot Renamer is a lightweight macOS menu bar app that automatically renames your
+    screenshots from the default 12-hour time format to 24-hour (military) time. This makes
+    screenshots sort chronologically in Finder, regardless of whether they were taken in the
+    morning or afternoon.
+</p>
+<div class="example">
+    Screenshot 2026-02-24 at 2.30.45 PM.png<br>
+    <span class="arrow">→</span> Screenshot 2026-02-24 at 14.30.45.png
+</div>
+<p>
+    The app watches your screenshot folder in real time and renames new files as they appear.
+    Screenshots already in 24-hour format are left untouched.
+</p>
+
+<!-- Getting Started -->
+<h2>Getting Started</h2>
+
+<h3>Download &amp; Install</h3>
+<ol>
+    <li>Download the latest <strong>DMG</strong> or <strong>ZIP</strong> from the
+        <a href="https://github.com/tpak/renamescreenshots/releases/latest">Releases page</a>.</li>
+    <li>If you downloaded the DMG, open it and drag <strong>Screenshot Renamer</strong> to your
+        Applications folder. If you downloaded the ZIP, unzip it and move the app to Applications.</li>
+    <li>Double-click the app to launch it. Because the app is not notarized, macOS Gatekeeper
+        will block it on first launch.</li>
+</ol>
+
+<h3>Bypassing Gatekeeper</h3>
+<p>Since the app is distributed outside the Mac App Store without notarization, macOS will show
+   a warning the first time you open it. To allow it:</p>
+<ol>
+    <li>Right-click (or Control-click) on <strong>Screenshot Renamer.app</strong> in Finder.</li>
+    <li>Select <strong>Open</strong> from the context menu.</li>
+    <li>Click <strong>Open</strong> in the confirmation dialog.</li>
+</ol>
+<p>You only need to do this once. After that, the app opens normally.</p>
+
+<h3>First Launch</h3>
+<p>
+    When the app starts, a small camera icon (<strong>📷</strong>) appears in your menu bar.
+    The file watcher starts automatically, monitoring your current screenshot folder for new files
+    to rename.
+</p>
+
+<!-- Settings -->
+<h2>Settings</h2>
+<p>Click the camera icon in the menu bar, then select <strong>Settings...</strong> to open the
+   settings window.</p>
+
+<h3>Save Location</h3>
+<p>Shows where macOS saves screenshots. You can type a path directly or click
+   <strong>Choose...</strong> to pick a folder. Changing this updates the macOS system setting
+   and restarts the screenshot service.</p>
+
+<h3>Prefix</h3>
+<p>The filename prefix macOS uses when saving screenshots. The default is
+   <code>Screenshot</code>. You can change it to any non-empty string (for example,
+   <code>Screen Shot</code> or <code>Capture</code>). The renamer automatically adapts its
+   matching pattern to your chosen prefix.</p>
+
+<h3>Options</h3>
+<ul>
+    <li><span class="setting-name">Show thumbnail preview after capture</span> — Controls
+        the floating thumbnail that appears briefly in the corner after taking a screenshot.</li>
+    <li><span class="setting-name">Include mouse pointer in screenshots</span> — When
+        enabled, the cursor is visible in captured images.</li>
+    <li><span class="setting-name">Disable window shadow</span> — Removes the drop shadow
+        from window screenshots, useful for cleaner images.</li>
+    <li><span class="setting-name">Include date in filename</span> — Toggles whether the
+        date and time appear in the screenshot filename.</li>
+    <li><span class="setting-name">Launch at login</span> — Starts Screenshot Renamer
+        automatically when you log in to your Mac.</li>
+    <li><span class="setting-name">Automatically check for updates</span> — Periodically
+        checks for new versions and offers to install them.</li>
+</ul>
+
+<h3>Format</h3>
+<p>Choose the image format for new screenshots: <strong>PNG</strong> (default),
+   <strong>JPG</strong>, <strong>PDF</strong>, or <strong>TIFF</strong>.</p>
+
+<h3>Capture Delay</h3>
+<p>Set a timer before each screenshot is taken: <strong>None</strong> (instant),
+   <strong>5 Seconds</strong>, or <strong>10 Seconds</strong>. Useful when you need time to
+   arrange windows before capturing.</p>
+
+<h3>Debug Logging</h3>
+<p>Enable debug logging to write detailed activity to a log file. Use the <strong>Open</strong>
+   button to view the log in Finder, or <strong>Clear</strong> to empty it. You can change the
+   log file location with <strong>Set Location...</strong>.</p>
+
+<h3>Reset to Defaults</h3>
+<p>Restores all screenshot settings to macOS defaults: location to Desktop, prefix to
+   "Screenshot", PNG format, no delay, and standard options.</p>
+
+<!-- Taking Screenshots on macOS -->
+<h2>Taking Screenshots on macOS</h2>
+<p>macOS provides several built-in keyboard shortcuts for capturing your screen:</p>
+<ul>
+    <li><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>3</kbd> — Capture the entire screen and save it as a
+        file.</li>
+    <li><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>4</kbd> — Enter selection mode. Click and drag to
+        capture a rectangular area of the screen.</li>
+    <li><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>4</kbd> then <kbd>Space</kbd> — After pressing
+        the shortcut, hit Space to switch to window capture mode. Click any window to capture
+        it with its shadow (unless shadow is disabled in settings).</li>
+    <li><kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>5</kbd> — Open the Screenshot toolbar, which lets
+        you choose between capturing the entire screen, a selected window, or a selected
+        portion. The toolbar also provides options for recording your screen.</li>
+    <li>Hold <kbd>⌃ Control</kbd> with any of the above shortcuts to copy the screenshot to
+        your clipboard instead of saving it as a file.</li>
+    <li>Press <kbd>Esc</kbd> at any time to cancel a screenshot in progress.</li>
+</ul>
+
+<!-- Troubleshooting -->
+<h2>Troubleshooting</h2>
+
+<h3>Screenshots are not being renamed</h3>
+<ul>
+    <li>Make sure the watcher is running — the menu should show <strong>Stop Watcher</strong>
+        (meaning it is active). If it says <strong>Start Watcher</strong>, click it to start.</li>
+    <li>Verify the save location in Settings matches where your screenshots are actually
+        being saved.</li>
+    <li>Check that <strong>Include date in filename</strong> is enabled — without the date/time
+        in the filename, there is nothing for the renamer to convert.</li>
+</ul>
+
+<h3>The app does not appear in the menu bar</h3>
+<ul>
+    <li>Screenshot Renamer runs as a menu bar app with no Dock icon. Look for the camera icon
+        in the right side of your menu bar.</li>
+    <li>If the menu bar is crowded, the icon may be hidden. Try closing other menu bar apps to
+        make room.</li>
+</ul>
+
+<h3>Quick Rename does not find any files</h3>
+<p>Quick Rename scans the current screenshot folder for files matching the 12-hour pattern.
+   If all files are already in 24-hour format or use a different naming pattern, there is
+   nothing to rename.</p>
+
+<h3>Using the debug log</h3>
+<p>If something isn't working as expected, enable debug logging in Settings. The log records
+   every file event, rename operation, and error. You can share the log file when reporting
+   an issue on GitHub.</p>
+
+<!-- Footer -->
+<footer>
+    <p>
+        <a href="https://github.com/tpak/renamescreenshots">GitHub</a> ·
+        MIT License ·
+        Made by Chris Tirpak
+    </p>
+</footer>
+
+</body>
+</html>
