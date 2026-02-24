@@ -1,0 +1,38 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Deploy docs to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Copy docs to temp location before switching branches
+          cp -r docs /tmp/docs-deploy
+          git fetch origin gh-pages || true
+          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf . 2>/dev/null || true
+          fi
+          # Copy docs content to root (index.html, etc.)
+          cp -r /tmp/docs-deploy/* .
+          git add -A
+          git diff --cached --quiet || git commit -m "Deploy docs from main"
+          git push origin gh-pages
+          echo "✅ Deployed docs to GitHub Pages"

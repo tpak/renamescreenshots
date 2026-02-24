@@ -8,7 +8,7 @@
 import Cocoa
 import UniformTypeIdentifiers
 
-// swiftlint:disable type_body_length function_body_length
+// swiftlint:disable type_body_length function_body_length file_length
 
 class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private let detector: ScreenshotDetector
@@ -17,6 +17,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
     // UI Elements
     private var locationField: NSTextField!
+    private var prefixField: NSTextField!
     private var showThumbnailCheckbox: NSButton!
     private var includeCursorCheckbox: NSButton!
     private var disableShadowCheckbox: NSButton!
@@ -36,7 +37,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 535),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 565),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -93,6 +94,20 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         chooseButton.target = self
         chooseButton.action = #selector(chooseLocation)
         contentView.addSubview(chooseButton)
+
+        currentY -= 30
+
+        // --- Prefix Row ---
+        let prefixLabel = createLabel("Prefix:", x: margin, y: currentY)
+        contentView.addSubview(prefixLabel)
+
+        prefixField = NSTextField(frame: NSRect(x: controlX, y: currentY, width: 200, height: 22))
+        prefixField.isEditable = true
+        prefixField.isSelectable = true
+        prefixField.backgroundColor = .textBackgroundColor
+        prefixField.delegate = self
+        prefixField.placeholderString = "Screenshot"
+        contentView.addSubview(prefixField)
 
         currentY -= 25
 
@@ -324,6 +339,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         locationField.stringValue = settings.location.path
         locationField.toolTip = settings.location.path
+        prefixField.stringValue = settings.prefix
 
         showThumbnailCheckbox.state = prefs.showThumbnail ? .on : .off
         includeCursorCheckbox.state = prefs.includeCursor ? .on : .off
@@ -359,9 +375,17 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     // MARK: - NSTextFieldDelegate
 
     func controlTextDidEndEditing(_ obj: Notification) {
-        guard let textField = obj.object as? NSTextField, textField === locationField else { return }
+        guard let textField = obj.object as? NSTextField else { return }
 
-        let path = textField.stringValue
+        if textField === locationField {
+            handleLocationFieldEditing()
+        } else if textField === prefixField {
+            handlePrefixFieldEditing()
+        }
+    }
+
+    private func handleLocationFieldEditing() {
+        let path = locationField.stringValue
         let expandedPath = (path as NSString).expandingTildeInPath
         let url = URL(fileURLWithPath: expandedPath)
 
@@ -384,6 +408,26 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         restartSystemUIServer()
         locationField.toolTip = expandedPath
+        onSettingsChanged?()
+    }
+
+    private func handlePrefixFieldEditing() {
+        let trimmed = prefixField.stringValue.trimmingCharacters(in: .whitespaces)
+
+        if trimmed.isEmpty {
+            showError("Prefix cannot be empty.")
+            loadCurrentSettings()
+            return
+        }
+
+        guard detector.setPrefix(trimmed) else {
+            showError("Failed to change screenshot prefix.")
+            loadCurrentSettings()
+            return
+        }
+
+        prefixField.stringValue = trimmed
+        restartSystemUIServer()
         onSettingsChanged?()
     }
 

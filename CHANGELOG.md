@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-02-24
+
+### Added
+- **Prefix field in Settings** — edit the screenshot filename prefix directly from the Settings dialog (closes #17)
+- **User Guide menu item** — opens the online user guide from the menu bar (closes #18)
+- **User Guide on GitHub Pages** — standalone HTML user guide at `https://tpak.github.io/renamescreenshots/` with getting started, settings reference, screenshot shortcuts, and troubleshooting (closes #19)
+- **Docs deployment workflow** — automatically deploys `docs/` to GitHub Pages when changed on main
+
+### Fixed
+- **Release workflow no longer destroys gh-pages** — switched from orphan-branch approach to merge-based deploy, preserving existing files (e.g., user guide) when updating the appcast
+
 ## [1.4.0] - 2026-02-21
 
 ### Added
@@ -114,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/tpak/renamescreenshots/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...v1.2.0
