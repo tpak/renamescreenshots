@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-02-25
+
+### Fixed
+- **Screenshot settings preserved across updates** — app continuously persists known-good settings to its own UserDefaults and restores them on launch if macOS reset `com.apple.screencapture` defaults (e.g., after a Sparkle update). Replaces the v1.5.1 approach that depended on the Sparkle delegate firing before termination. (closes #21)
+- Added debug logging throughout settings detection, snapshot save/restore, and Sparkle update flow for diagnosing future issues
+
 ## [1.5.1] - 2026-02-25
 
 ### Fixed
-- **Sparkle update no longer resets screenshot settings** — app now snapshots all `com.apple.screencapture` settings (location, prefix, format, options, delay) before installing an update and restores them on next launch (closes #21)
+- **Sparkle update no longer resets screenshot settings** — app now snapshots all `com.apple.screencapture` settings (location, prefix, format, options, delay) before installing an update and restores them on next launch
 
 ## [1.5.0] - 2026-02-24
 
@@ -130,7 +136,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/tpak/renamescreenshots/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/tpak/renamescreenshots/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...v1.4.0

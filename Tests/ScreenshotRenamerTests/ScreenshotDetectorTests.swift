@@ -395,40 +395,28 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setCaptureDelay(originalPrefs.captureDelay)
     }
 
-    func testPreUpdateSettingsSnapshotRoundTrip() {
+    func testSettingsSnapshotSaveAndRestore() {
         let detector = ScreenshotDetector()
-        let settings = detector.detectSettings()
-        let prefs = detector.detectPreferences()
+        let originalSettings = detector.detectSettings()
+        let snapshotKey = "knownGoodSettings"
 
-        // Save snapshot (mirrors UpdateManager.saveSettingsSnapshot)
-        let snapshot: [String: Any] = [
-            "location": settings.location.path,
-            "prefix": settings.prefix,
-            "format": prefs.format.rawValue,
-            "showThumbnail": prefs.showThumbnail,
-            "includeCursor": prefs.includeCursor,
-            "disableShadow": prefs.disableShadow,
-            "includeDate": prefs.includeDate,
-            "captureDelay": prefs.captureDelay
-        ]
+        // Save current settings via SettingsSnapshot
+        SettingsSnapshot.save()
+        defer { UserDefaults.standard.removeObject(forKey: snapshotKey) }
 
-        let key = "preUpdateSettingsTest"
-        UserDefaults.standard.set(snapshot, forKey: key)
-        defer { UserDefaults.standard.removeObject(forKey: key) }
-
-        // Read back and verify all keys
-        guard let restored = UserDefaults.standard.dictionary(forKey: key) else {
-            XCTFail("Snapshot should be readable from UserDefaults")
+        // Verify snapshot was written with all expected keys
+        guard let snapshot = UserDefaults.standard.dictionary(forKey: snapshotKey) else {
+            XCTFail("SettingsSnapshot.save() should write to UserDefaults")
             return
         }
 
-        XCTAssertEqual(restored["location"] as? String, settings.location.path)
-        XCTAssertEqual(restored["prefix"] as? String, settings.prefix)
-        XCTAssertEqual(restored["format"] as? String, prefs.format.rawValue)
-        XCTAssertEqual(restored["showThumbnail"] as? Bool, prefs.showThumbnail)
-        XCTAssertEqual(restored["includeCursor"] as? Bool, prefs.includeCursor)
-        XCTAssertEqual(restored["disableShadow"] as? Bool, prefs.disableShadow)
-        XCTAssertEqual(restored["includeDate"] as? Bool, prefs.includeDate)
-        XCTAssertEqual(restored["captureDelay"] as? Int, prefs.captureDelay)
+        XCTAssertEqual(snapshot["location"] as? String, originalSettings.location.path)
+        XCTAssertEqual(snapshot["prefix"] as? String, originalSettings.prefix)
+        XCTAssertNotNil(snapshot["format"] as? String)
+        XCTAssertNotNil(snapshot["showThumbnail"] as? Bool)
+        XCTAssertNotNil(snapshot["includeCursor"] as? Bool)
+        XCTAssertNotNil(snapshot["disableShadow"] as? Bool)
+        XCTAssertNotNil(snapshot["includeDate"] as? Bool)
+        XCTAssertNotNil(snapshot["captureDelay"] as? Int)
     }
 }

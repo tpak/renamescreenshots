@@ -242,6 +242,8 @@ class ScreenshotDetector {
             domain: "com.apple.screencapture",
             key: "location"
         ) else {
+            DebugLogger.shared.log("defaults read location returned nil, falling back to Desktop",
+                                   category: "Detector")
             return defaultLocation()
         }
 
@@ -257,11 +259,16 @@ class ScreenshotDetector {
         )
 
         guard exists && isDirectory.boolValue else {
+            DebugLogger.shared.log(
+                "Location invalid: \(url.path) exists=\(exists) isDir=\(isDirectory.boolValue), fallback to Desktop",
+                category: "Detector"
+            )
             os_log("Screenshot location invalid or not a directory: %{public}@",
                    log: .default, type: .debug, url.path)
             return defaultLocation()
         }
 
+        DebugLogger.shared.log("Detected location: \(url.path)", category: "Detector")
         return url
     }
 

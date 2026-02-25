@@ -47,7 +47,10 @@ class MenuBarController: NSObject {
         setupMenuBar()
         requestNotificationPermissions()
         loadSettings()
-        restoreSettingsIfNeeded()
+        if SettingsSnapshot.restoreIfNeeded(detector: detector) {
+            loadSettings() // Reload after restore
+        }
+        SettingsSnapshot.save() // Persist current known-good state
         autoStartWatcher()
         print("📋 MenuBarController initialized")
     }
@@ -367,47 +370,6 @@ class MenuBarController: NSObject {
         settingsWindowController?.showWindow()
     }
 
-    /// Restore screenshot settings if they were saved before a Sparkle update
-    private func restoreSettingsIfNeeded() {
-        guard let snapshot = UserDefaults.standard.dictionary(forKey: "preUpdateSettings") else { return }
-        UserDefaults.standard.removeObject(forKey: "preUpdateSettings")
-
-        os_log("Found pre-update settings snapshot, restoring", log: .default, type: .info)
-
-        // Restore location (only if saved directory still exists)
-        if let savedPath = snapshot["location"] as? String {
-            let savedURL = URL(fileURLWithPath: savedPath)
-            var isDir: ObjCBool = false
-            if FileManager.default.fileExists(atPath: savedPath, isDirectory: &isDir), isDir.boolValue {
-                _ = detector.setSystemLocation(savedURL)
-            }
-        }
-
-        // Restore prefix
-        if let savedPrefix = snapshot["prefix"] as? String, !savedPrefix.isEmpty {
-            _ = detector.setPrefix(savedPrefix)
-        }
-
-        // Restore format
-        if let savedFormat = snapshot["format"] as? String,
-           let format = ScreenshotFormat(rawValue: savedFormat) {
-            _ = detector.setFormat(format)
-        }
-
-        // Restore boolean preferences
-        if let val = snapshot["showThumbnail"] as? Bool { _ = detector.setShowThumbnail(val) }
-        if let val = snapshot["includeCursor"] as? Bool { _ = detector.setIncludeCursor(val) }
-        if let val = snapshot["disableShadow"] as? Bool { _ = detector.setDisableShadow(val) }
-        if let val = snapshot["includeDate"] as? Bool { _ = detector.setIncludeDate(val) }
-
-        // Restore capture delay
-        if let delay = snapshot["captureDelay"] as? Int { _ = detector.setCaptureDelay(delay) }
-
-        _ = ShellExecutor.restartSystemUIServer()
-        loadSettings()
-        os_log("Restored settings from pre-update snapshot", log: .default, type: .info)
-    }
-
     /// Reload settings after changes from settings window
     private func reloadSettingsAfterChange() {
         let wasRunning = watcher?.isRunning ?? false
@@ -415,6 +377,7 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         loadSettings()
+        SettingsSnapshot.save()
         if wasRunning {
             try? startWatcher()
         }
