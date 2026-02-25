@@ -210,6 +210,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           # Save appcast before switching branches
           cp appcast.xml /tmp/appcast.xml
+          # Clean working tree so branch switch succeeds
+          git checkout -- .
+          git clean -fd
           git fetch origin gh-pages || true
           if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
             git checkout gh-pages
