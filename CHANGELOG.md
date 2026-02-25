@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-02-25
+
+### Fixed
+- **Sparkle update no longer resets screenshot settings** — app now snapshots all `com.apple.screencapture` settings (location, prefix, format, options, delay) before installing an update and restores them on next launch (closes #21)
+
 ## [1.5.0] - 2026-02-24
 
 ### Added
@@ -125,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/tpak/renamescreenshots/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/tpak/renamescreenshots/compare/v1.2.0...v1.3.0
