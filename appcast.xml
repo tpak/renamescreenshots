@@ -3,14 +3,14 @@
   <channel>
     <title>Screenshot Renamer</title>
     <item>
-      <title>Version 1.5.0</title>
-      <pubDate>Wed, 25 Feb 2026 09:17:00 +0000</pubDate>
-      <sparkle:version>1.5.0</sparkle:version>
-      <sparkle:shortVersionString>1.5.0</sparkle:shortVersionString>
+      <title>Version 1.5.1</title>
+      <pubDate>Wed, 25 Feb 2026 09:49:28 +0000</pubDate>
+      <sparkle:version>1.5.1</sparkle:version>
+      <sparkle:shortVersionString>1.5.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/tpak/renamescreenshots/releases/download/v1.5.0/ScreenshotRenamer.zip"
-                 sparkle:edSignature="gBXA5YD4rCFf25naBw/y4oKGfyVNMNvfi4HtsJ+x5G7ilyLnsqIQ1KbxP+Dw4auVy5cOYFkFmvNKNnG/IEd1BA=="
-                 length="2643692"
+      <enclosure url="https://github.com/tpak/renamescreenshots/releases/download/v1.5.1/ScreenshotRenamer.zip"
+                 sparkle:edSignature="IO1SqyDb3+CgPyugR8qYDOKOYzmL6OFGK1DzL5VgNOxEZiWpLiczvISl2pZkqq66xkSkMy8Bp2K+F+ii2QRqAQ=="
+                 length="2647559"
                  type="application/octet-stream" />
     </item>
   </channel>
