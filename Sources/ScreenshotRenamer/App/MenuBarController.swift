@@ -396,7 +396,7 @@ class MenuBarController: NSObject {
 
     /// Open the user guide in the default browser
     @objc private func openUserGuide() {
-        if let url = URL(string: "https://tpak.github.io/renamescreenshots/") {
+        if let url = URL(string: "https://tpak.github.io/ScreenshotRenamer/") {
             NSWorkspace.shared.open(url)
         }
     }
@@ -435,7 +435,7 @@ class MenuBarController: NSObject {
         let response = alert.runModal()
 
         if response == .alertSecondButtonReturn {
-            if let url = URL(string: "https://github.com/tpak/renamescreenshots") {
+            if let url = URL(string: "https://github.com/tpak/ScreenshotRenamer") {
                 NSWorkspace.shared.open(url)
             }
         }

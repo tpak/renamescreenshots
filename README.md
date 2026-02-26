@@ -1,7 +1,7 @@
 # Screenshot Renamer
 
-[![CI/CD](https://github.com/tpak/renamescreenshots/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/tpak/renamescreenshots/actions/workflows/swift.yml)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/tpak/renamescreenshots)](https://github.com/tpak/renamescreenshots/releases/latest)
+[![CI/CD](https://github.com/tpak/ScreenshotRenamer/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/tpak/ScreenshotRenamer/actions/workflows/swift.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/tpak/ScreenshotRenamer)](https://github.com/tpak/ScreenshotRenamer/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2011.0%2B-blue.svg)](https://www.apple.com/macos/)
 
@@ -16,7 +16,7 @@ Also handles 24-hour timestamps (prefix lowercasing) and parenthesized sequence 
 
 ### Download (Recommended)
 
-1. Download **ScreenshotRenamer.dmg** from [GitHub Releases](https://github.com/tpak/renamescreenshots/releases/latest)
+1. Download **ScreenshotRenamer.dmg** from [GitHub Releases](https://github.com/tpak/ScreenshotRenamer/releases/latest)
 2. Open the DMG and drag the app to Applications
 3. Right-click the app and select "Open" (first run only, to bypass Gatekeeper)
 4. The camera icon appears in your menu bar — screenshots are now automatically renamed
@@ -24,8 +24,8 @@ Also handles 24-hour timestamps (prefix lowercasing) and parenthesized sequence 
 ### Build from Source
 
 ```bash
-git clone https://github.com/tpak/renamescreenshots.git
-cd renamescreenshots
+git clone https://github.com/tpak/ScreenshotRenamer.git
+cd ScreenshotRenamer
 ./Scripts/build-app.sh
 open ScreenshotRenamer.app
 ```

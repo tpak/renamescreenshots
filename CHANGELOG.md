@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-02-26
+
+### Changed
+- **Repository renamed** from `renamescreenshots` to `ScreenshotRenamer` to match the app name
+- Updated all GitHub and GitHub Pages URLs to new repo path (user guide, appcast feed, badges)
+- **Note:** Existing v1.5.2 installations will not auto-discover this update; download manually from [Releases](https://github.com/tpak/ScreenshotRenamer/releases/latest)
+
+### Removed
+- Cleaned up old Python LaunchAgent (`com.screenshot-renamer.menubar`) and artifacts from pre-Swift version
+
 ## [1.5.2] - 2026-02-25
 
 ### Fixed
@@ -23,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Prefix field in Settings** — edit the screenshot filename prefix directly from the Settings dialog (closes #17)
 - **User Guide menu item** — opens the online user guide from the menu bar (closes #18)
-- **User Guide on GitHub Pages** — standalone HTML user guide at `https://tpak.github.io/renamescreenshots/` with getting started, settings reference, screenshot shortcuts, and troubleshooting (closes #19)
+- **User Guide on GitHub Pages** — standalone HTML user guide at `https://tpak.github.io/ScreenshotRenamer/` with getting started, settings reference, screenshot shortcuts, and troubleshooting (closes #19)
 - **Docs deployment workflow** — automatically deploys `docs/` to GitHub Pages when changed on main
 
 ### Fixed
@@ -136,14 +146,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.5.2...HEAD
-[1.5.2]: https://github.com/tpak/renamescreenshots/compare/v1.5.1...v1.5.2
-[1.5.1]: https://github.com/tpak/renamescreenshots/compare/v1.5.0...v1.5.1
-[1.5.0]: https://github.com/tpak/renamescreenshots/compare/v1.4.0...v1.5.0
-[1.4.0]: https://github.com/tpak/renamescreenshots/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/tpak/renamescreenshots/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/tpak/renamescreenshots/compare/v1.1.2...v1.2.0
-[1.1.2]: https://github.com/tpak/renamescreenshots/compare/v1.1.1...v1.1.2
-[1.1.1]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...v1.1.1
-[1.1.0]: https://github.com/tpak/renamescreenshots/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/tpak/renamescreenshots/releases/tag/v1.0.0
+[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.5.2...v1.6.0
+[1.5.2]: https://github.com/tpak/ScreenshotRenamer/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/tpak/ScreenshotRenamer/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.1.2...v1.2.0
+[1.1.2]: https://github.com/tpak/ScreenshotRenamer/compare/v1.1.1...v1.1.2
+[1.1.1]: https://github.com/tpak/ScreenshotRenamer/compare/v1.1.0...v1.1.1
+[1.1.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/tpak/ScreenshotRenamer/releases/tag/v1.0.0
