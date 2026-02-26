@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-02-26
+
+### Changed
+- Simplified release note templates in CI workflows
+
 ## [1.6.2] - 2026-02-26
 
 ### Changed
@@ -157,7 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.2...HEAD
+[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.3...HEAD
+[1.6.3]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.5.2...v1.6.0
