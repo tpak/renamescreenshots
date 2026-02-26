@@ -130,10 +130,10 @@ class MenuBarController: NSObject {
         // Check for updates
         let checkForUpdatesItem = NSMenuItem(
             title: "Check for Updates...",
-            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
+            action: #selector(checkForUpdates),
             keyEquivalent: ""
         )
-        checkForUpdatesItem.target = updateManager.updaterController
+        checkForUpdatesItem.target = self
         menu.addItem(checkForUpdatesItem)
 
         // User Guide
@@ -390,6 +390,14 @@ class MenuBarController: NSObject {
             stopWatcher()
         }
         NSApplication.shared.terminate(self)
+    }
+
+    // MARK: - Updates
+
+    /// Check for updates, activating the app first so Sparkle's dialog appears in front
+    @objc private func checkForUpdates(_ sender: Any?) {
+        NSApp.activate(ignoringOtherApps: true)
+        updateManager.updaterController.checkForUpdates(sender)
     }
 
     // MARK: - User Guide

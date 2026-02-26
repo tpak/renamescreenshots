@@ -26,6 +26,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private var formatPopup: NSPopUpButton!
     private var captureDelayPopup: NSPopUpButton!
     private var autoCheckUpdatesCheckbox: NSButton!
+    private var updateFrequencyPopup: NSPopUpButton!
 
     // Debug UI Elements
     private var debugEnableCheckbox: NSButton!
@@ -37,7 +38,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 565),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 595),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -181,6 +182,20 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             action: #selector(toggleAutoCheckUpdates)
         )
         contentView.addSubview(autoCheckUpdatesCheckbox)
+
+        currentY -= 25
+
+        // Update frequency
+        let frequencyLabel = createLabel("Check:", x: margin, y: currentY)
+        contentView.addSubview(frequencyLabel)
+
+        updateFrequencyPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 100, height: 25))
+        for freq in UpdateManager.CheckFrequency.allCases {
+            updateFrequencyPopup.addItem(withTitle: freq.title)
+        }
+        updateFrequencyPopup.target = self
+        updateFrequencyPopup.action = #selector(updateFrequencyChanged)
+        contentView.addSubview(updateFrequencyPopup)
 
         currentY -= 30
 
@@ -347,6 +362,9 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         includeDateCheckbox.state = prefs.includeDate ? .on : .off
         launchAtLoginCheckbox.state = LaunchAtLoginManager.shared.isEnabled ? .on : .off
         autoCheckUpdatesCheckbox.state = updateManager.automaticallyChecksForUpdates ? .on : .off
+        let currentFrequency = UpdateManager.CheckFrequency.from(interval: updateManager.updateCheckInterval)
+        updateFrequencyPopup.selectItem(withTitle: currentFrequency.title)
+        updateFrequencyPopup.isEnabled = updateManager.automaticallyChecksForUpdates
 
         switch prefs.format {
         case .png: formatPopup.selectItem(withTitle: "PNG")
@@ -522,7 +540,18 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
     @objc
     private func toggleAutoCheckUpdates() {
-        updateManager.automaticallyChecksForUpdates = autoCheckUpdatesCheckbox.state == .on
+        let enabled = autoCheckUpdatesCheckbox.state == .on
+        updateManager.automaticallyChecksForUpdates = enabled
+        updateFrequencyPopup.isEnabled = enabled
+        onSettingsChanged?()
+    }
+
+    @objc
+    private func updateFrequencyChanged() {
+        let index = updateFrequencyPopup.indexOfSelectedItem
+        let allFrequencies = UpdateManager.CheckFrequency.allCases
+        guard index >= 0, index < allFrequencies.count else { return }
+        updateManager.updateCheckInterval = allFrequencies[index].rawValue
         onSettingsChanged?()
     }
 

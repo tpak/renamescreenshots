@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-02-26
+
+### Added
+- **Update check frequency** — choose Daily, Weekly, or Monthly in Settings (dropdown disabled when auto-check is off)
+
+### Fixed
+- **Check for Updates dialog now appears immediately** — previously the Sparkle dialog was hidden behind other windows because the app wasn't activated as the frontmost app
+
 ## [1.6.3] - 2026-02-26
 
 ### Changed
@@ -162,7 +170,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.3...HEAD
+[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.3...v1.7.0
 [1.6.3]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.0...v1.6.1
