@@ -16,12 +16,12 @@ Thank you for your interest in contributing to Screenshot Renamer! This document
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/renamescreenshots.git
-   cd renamescreenshots
+   git clone https://github.com/YOUR_USERNAME/ScreenshotRenamer.git
+   cd ScreenshotRenamer
    ```
 3. Add upstream remote:
    ```bash
-   git remote add upstream https://github.com/tpak/renamescreenshots.git
+   git remote add upstream https://github.com/tpak/ScreenshotRenamer.git
    ```
 
 ### Making Changes
@@ -122,7 +122,7 @@ Every push to `main` automatically triggers:
 - **Creation of "latest" pre-release** with downloadable artifacts
 - **Security scanning** with CodeQL
 
-Available at: https://github.com/tpak/renamescreenshots/releases/tag/latest
+Available at: https://github.com/tpak/ScreenshotRenamer/releases/tag/latest
 
 ### Pull Request Validation
 
@@ -163,8 +163,8 @@ Move "Unreleased" changes to a new version section:
 Add comparison links at the bottom:
 
 ```markdown
-[Unreleased]: https://github.com/tpak/renamescreenshots/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/tpak/renamescreenshots/compare/v1.0.0...v1.1.0
+[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.0.0...v1.1.0
 ```
 
 #### 2. Bump Version
@@ -203,7 +203,7 @@ The `release-tag.yml` workflow automatically:
 
 #### 6. Verify Release
 
-1. Visit https://github.com/tpak/renamescreenshots/releases
+1. Visit https://github.com/tpak/ScreenshotRenamer/releases
 2. Verify the release was created
 3. Download and test artifacts locally:
    ```bash
@@ -276,8 +276,8 @@ Sources/ScreenshotRenamer/
 
 ## Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/tpak/renamescreenshots/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/tpak/renamescreenshots/discussions)
+- **Issues**: [GitHub Issues](https://github.com/tpak/ScreenshotRenamer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tpak/ScreenshotRenamer/discussions)
 - **Email**: Check the repository for contact information
 
 ## Code of Conduct

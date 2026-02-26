@@ -23,7 +23,7 @@
 	<key>NSMainStoryboardFile</key>
 	<string></string>
 	<key>SUFeedURL</key>
-	<string>https://tpak.github.io/renamescreenshots/appcast.xml</string>
+	<string>https://tpak.github.io/ScreenshotRenamer/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>6aLwQvjUe74RhVN1IVlf9IIIAc6kwbQF74tC8CBifqU=</string>
 </dict>
