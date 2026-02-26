@@ -60,47 +60,12 @@ jobs:
         id: release_notes
         run: |
           cat <<EOF > release_notes.md
-          ## Screenshot Renamer v${{ steps.get_version.outputs.VERSION }} (Latest Build)
+          Latest development build from the main branch.
 
-          This is the latest development build from the main branch.
-
-          **⚠️ Note:** This is a pre-release build. For stable releases, see [Releases](https://github.com/${{ github.repository }}/releases).
-
-          ### Installation
-
-          **Option 1: DMG (Recommended)**
-          1. Download \`ScreenshotRenamer.dmg\`
-          2. Open the DMG file
-          3. Drag the app to your Applications folder
-          4. Right-click the app and select "Open" to bypass Gatekeeper
-
-          **Option 2: ZIP**
-          1. Download \`ScreenshotRenamer.zip\`
-          2. Unzip the file
-          3. Move \`ScreenshotRenamer.app\` to Applications
-          4. Right-click the app and select "Open" to bypass Gatekeeper
-
-          **Verify Download (Optional):**
-          \`\`\`bash
-          shasum -a 256 -c ScreenshotRenamer.zip.sha256
-          # or
-          shasum -a 256 -c ScreenshotRenamer.dmg.sha256
-          \`\`\`
-
-          ### Build Information
-
-          - **Commit:** ${{ github.sha }}
-          - **Branch:** ${{ github.ref_name }}
-          - **Built:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          - **Workflow:** [${{ github.workflow }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
-          ### What's Changed
-
-          See commit: [${{ github.event.head_commit.message }}](${{ github.event.head_commit.url }})
+          **⚠️ This is a pre-release build.** For stable releases, see [Releases](https://github.com/${{ github.repository }}/releases).
 
           ---
-
-          For the latest stable release, visit [Releases](https://github.com/${{ github.repository }}/releases).
+          📖 See the [README](https://github.com/${{ github.repository }}#readme) for installation and usage instructions.
           EOF
           echo "release_notes_file=release_notes.md" >> $GITHUB_OUTPUT
 

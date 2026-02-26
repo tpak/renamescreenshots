@@ -155,40 +155,10 @@ jobs:
       - name: Create release notes
         run: |
           cat <<EOF > release_notes.md
-          ## Screenshot Renamer v${{ steps.get_version.outputs.VERSION }}
-
-          ### Installation
-
-          **Option 1: DMG (Recommended)**
-          1. Download \`ScreenshotRenamer.dmg\`
-          2. Open the DMG file
-          3. Drag the app to your Applications folder
-          4. Right-click the app and select "Open" to bypass Gatekeeper
-
-          **Option 2: ZIP**
-          1. Download \`ScreenshotRenamer.zip\`
-          2. Unzip the file
-          3. Move \`ScreenshotRenamer.app\` to Applications
-          4. Right-click the app and select "Open" to bypass Gatekeeper
-
-          **Verify Download (Optional):**
-          \`\`\`bash
-          shasum -a 256 -c ScreenshotRenamer.zip.sha256
-          # or
-          shasum -a 256 -c ScreenshotRenamer.dmg.sha256
-          \`\`\`
-
-          ### Auto-Start on Login
-
-          To have Screenshot Renamer start automatically when you log in:
-
-          1. Open **System Settings** → **General** → **Login Items**
-          2. Click the **+** button
-          3. Select **Screenshot Renamer.app**
+          $(cat changelog.md)
 
           ---
-
-          $(cat changelog.md)
+          📖 See the [README](https://github.com/${{ github.repository }}#readme) for installation and usage instructions.
           EOF
 
       - name: Create GitHub release
