@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-09
+
+### Added
+- **"Check Now" button in Settings** — check for updates directly from the Settings dialog without using the menu bar
+
 ## [1.7.0] - 2026-02-26
 
 ### Added

@@ -197,6 +197,11 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         updateFrequencyPopup.action = #selector(updateFrequencyChanged)
         contentView.addSubview(updateFrequencyPopup)
 
+        let checkNowButton = NSButton(title: "Check Now", target: self, action: #selector(checkForUpdatesNow))
+        checkNowButton.bezelStyle = .rounded
+        checkNowButton.frame = NSRect(x: controlX + 110, y: currentY - 2, width: 90, height: 25)
+        contentView.addSubview(checkNowButton)
+
         currentY -= 30
 
         // --- Format Row ---
@@ -544,6 +549,12 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         updateManager.automaticallyChecksForUpdates = enabled
         updateFrequencyPopup.isEnabled = enabled
         onSettingsChanged?()
+    }
+
+    @objc
+    private func checkForUpdatesNow() {
+        NSApp.activate(ignoringOtherApps: true)
+        updateManager.updaterController.checkForUpdates(nil)
     }
 
     @objc
