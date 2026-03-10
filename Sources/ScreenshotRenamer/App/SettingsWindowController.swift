@@ -27,6 +27,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
     private var captureDelayPopup: NSPopUpButton!
     private var autoCheckUpdatesCheckbox: NSButton!
     private var updateFrequencyPopup: NSPopUpButton!
+    private var autoDownloadUpdatesCheckbox: NSButton!
 
     // Debug UI Elements
     private var debugEnableCheckbox: NSButton!
@@ -38,7 +39,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 595),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 630),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -69,13 +70,20 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         let controlX: CGFloat = margin + labelWidth + 10
         var currentY: CGFloat = contentView.bounds.height - 40
 
-        // --- Location Section ---
+        // ============================================================
+        // Screenshot Options
+        // ============================================================
+        let screenshotLabel = createSectionLabel("Screenshot Options:", x: margin, y: currentY)
+        contentView.addSubview(screenshotLabel)
+
+        currentY -= 25
+
+        // Save Location
         let locationLabel = createLabel("Save Location:", x: margin, y: currentY)
         contentView.addSubview(locationLabel)
 
         currentY -= 25
 
-        // Full-width editable location field
         locationField = NSTextField(frame: NSRect(x: margin, y: currentY, width: 510, height: 22))
         locationField.isEditable = true
         locationField.isSelectable = true
@@ -86,7 +94,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 30
 
-        // Choose button (right-aligned)
         let chooseButton = NSButton(
             frame: NSRect(x: 510 - 80 + margin, y: currentY, width: 80, height: 24)
         )
@@ -98,7 +105,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 30
 
-        // --- Prefix Row ---
+        // Prefix
         let prefixLabel = createLabel("Prefix:", x: margin, y: currentY)
         contentView.addSubview(prefixLabel)
 
@@ -112,19 +119,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 25
 
-        // --- Separator ---
-        let separator1 = NSBox(frame: NSRect(x: margin, y: currentY, width: 510, height: 1))
-        separator1.boxType = .separator
-        contentView.addSubview(separator1)
-
-        currentY -= 25
-
-        // --- Screenshot Options Section ---
-        let optionsLabel = createSectionLabel("Options:", x: margin, y: currentY)
-        contentView.addSubview(optionsLabel)
-
-        currentY -= 25
-
+        // Checkboxes
         showThumbnailCheckbox = createCheckbox(
             "Show thumbnail preview after capture",
             x: controlX,
@@ -163,7 +158,45 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         )
         contentView.addSubview(includeDateCheckbox)
 
-        currentY -= 22
+        currentY -= 25
+
+        // Format
+        let formatLabel = createLabel("Format:", x: margin, y: currentY)
+        contentView.addSubview(formatLabel)
+
+        formatPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 100, height: 25))
+        formatPopup.addItems(withTitles: ["PNG", "JPG", "PDF", "TIFF"])
+        formatPopup.target = self
+        formatPopup.action = #selector(formatChanged)
+        contentView.addSubview(formatPopup)
+
+        currentY -= 30
+
+        // Capture Delay
+        let delayLabel = createLabel("Capture Delay:", x: margin, y: currentY)
+        contentView.addSubview(delayLabel)
+
+        captureDelayPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 120, height: 25))
+        captureDelayPopup.addItems(withTitles: ["None", "5 Seconds", "10 Seconds"])
+        captureDelayPopup.target = self
+        captureDelayPopup.action = #selector(captureDelayChanged)
+        contentView.addSubview(captureDelayPopup)
+
+        currentY -= 30
+
+        // ============================================================
+        // App Options
+        // ============================================================
+        let separator1 = NSBox(frame: NSRect(x: margin, y: currentY, width: 510, height: 1))
+        separator1.boxType = .separator
+        contentView.addSubview(separator1)
+
+        currentY -= 25
+
+        let appLabel = createSectionLabel("App Options:", x: margin, y: currentY)
+        contentView.addSubview(appLabel)
+
+        currentY -= 25
 
         launchAtLoginCheckbox = createCheckbox(
             "Launch at login",
@@ -185,7 +218,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 25
 
-        // Update frequency
+        // Update frequency + Check Now
         let frequencyLabel = createLabel("Check:", x: margin, y: currentY)
         contentView.addSubview(frequencyLabel)
 
@@ -202,40 +235,27 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         checkNowButton.frame = NSRect(x: controlX + 110, y: currentY - 2, width: 90, height: 25)
         contentView.addSubview(checkNowButton)
 
-        currentY -= 30
+        currentY -= 27
 
-        // --- Format Row ---
-        let formatLabel = createLabel("Format:", x: margin, y: currentY)
-        contentView.addSubview(formatLabel)
-
-        formatPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 100, height: 25))
-        formatPopup.addItems(withTitles: ["PNG", "JPG", "PDF", "TIFF"])
-        formatPopup.target = self
-        formatPopup.action = #selector(formatChanged)
-        contentView.addSubview(formatPopup)
+        autoDownloadUpdatesCheckbox = createCheckbox(
+            "Automatically download and install updates",
+            x: controlX,
+            y: currentY,
+            action: #selector(toggleAutoDownloadUpdates)
+        )
+        contentView.addSubview(autoDownloadUpdatesCheckbox)
 
         currentY -= 30
 
-        // --- Capture Delay Row ---
-        let delayLabel = createLabel("Capture Delay:", x: margin, y: currentY)
-        contentView.addSubview(delayLabel)
-
-        captureDelayPopup = NSPopUpButton(frame: NSRect(x: controlX, y: currentY - 2, width: 120, height: 25))
-        captureDelayPopup.addItems(withTitles: ["None", "5 Seconds", "10 Seconds"])
-        captureDelayPopup.target = self
-        captureDelayPopup.action = #selector(captureDelayChanged)
-        contentView.addSubview(captureDelayPopup)
-
-        currentY -= 30
-
-        // --- Separator ---
+        // ============================================================
+        // Debug
+        // ============================================================
         let separator2 = NSBox(frame: NSRect(x: margin, y: currentY, width: 510, height: 1))
         separator2.boxType = .separator
         contentView.addSubview(separator2)
 
         currentY -= 25
 
-        // --- Debug Section ---
         let debugLabel = createSectionLabel("Debug:", x: margin, y: currentY)
         contentView.addSubview(debugLabel)
 
@@ -251,7 +271,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 22
 
-        // Log path label
         let logLabel = createLabel("Log:", x: margin, y: currentY)
         contentView.addSubview(logLabel)
 
@@ -268,7 +287,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
 
         currentY -= 28
 
-        // Debug buttons row
         let debugButtonY = currentY
         let debugButtonWidth: CGFloat = 100
 
@@ -299,12 +317,13 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         clearButton.action = #selector(clearDebugLog)
         contentView.addSubview(clearButton)
 
-        // --- Separator before bottom buttons ---
+        // ============================================================
+        // Bottom Buttons
+        // ============================================================
         let separator3 = NSBox(frame: NSRect(x: margin, y: 55, width: 510, height: 1))
         separator3.boxType = .separator
         contentView.addSubview(separator3)
 
-        // --- Bottom Buttons ---
         let resetButton = NSButton(frame: NSRect(x: margin, y: 18, width: 120, height: 28))
         resetButton.title = "Reset to Defaults"
         resetButton.bezelStyle = .rounded
@@ -370,6 +389,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         let currentFrequency = UpdateManager.CheckFrequency.from(interval: updateManager.updateCheckInterval)
         updateFrequencyPopup.selectItem(withTitle: currentFrequency.title)
         updateFrequencyPopup.isEnabled = updateManager.automaticallyChecksForUpdates
+        autoDownloadUpdatesCheckbox.state = updateManager.automaticallyDownloadsUpdates ? .on : .off
 
         switch prefs.format {
         case .png: formatPopup.selectItem(withTitle: "PNG")
@@ -546,6 +566,12 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         let enabled = autoCheckUpdatesCheckbox.state == .on
         updateManager.automaticallyChecksForUpdates = enabled
         updateFrequencyPopup.isEnabled = enabled
+        onSettingsChanged?()
+    }
+
+    @objc
+    private func toggleAutoDownloadUpdates() {
+        updateManager.automaticallyDownloadsUpdates = autoDownloadUpdatesCheckbox.state == .on
         onSettingsChanged?()
     }
 
