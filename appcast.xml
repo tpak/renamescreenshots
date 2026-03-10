@@ -3,14 +3,14 @@
   <channel>
     <title>Screenshot Renamer</title>
     <item>
-      <title>Version 1.9.0</title>
-      <pubDate>Mon, 09 Mar 2026 05:35:18 +0000</pubDate>
-      <sparkle:version>1.9.0</sparkle:version>
-      <sparkle:shortVersionString>1.9.0</sparkle:shortVersionString>
+      <title>Version 1.9.1</title>
+      <pubDate>Tue, 10 Mar 2026 11:49:12 +0000</pubDate>
+      <sparkle:version>1.9.1</sparkle:version>
+      <sparkle:shortVersionString>1.9.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
-      <enclosure url="https://github.com/tpak/ScreenshotRenamer/releases/download/v1.9.0/ScreenshotRenamer.zip"
-                 sparkle:edSignature="dKobGj//VrafzVfG3dIFCq385AlOS47Q7tYGIZV22oZ01XVsLx/B88RyffWCl8XmGPd45rFr0CJ5+ZQtYXhCCQ=="
-                 length="2656777"
+      <enclosure url="https://github.com/tpak/ScreenshotRenamer/releases/download/v1.9.1/ScreenshotRenamer.zip"
+                 sparkle:edSignature="+FgXNWV1xRVGHtrFrVQQuSuJOs2HYq9g5HyYi04IdytWA/Shzcvef8W/mAneJb3cVEKkbdwbeKoVdE0eUbJ/AA=="
+                 length="2656757"
                  type="application/octet-stream" />
     </item>
   </channel>
