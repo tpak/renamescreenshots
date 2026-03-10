@@ -489,7 +489,8 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             showError("Failed to change thumbnail setting.")
             return
         }
-        restartSystemUIServer()
+        // No SystemUIServer restart needed — screencaptureui reads this
+        // preference fresh on each launch (macOS 14+)
         onSettingsChanged?()
     }
 
@@ -501,7 +502,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             showError("Failed to change cursor setting.")
             return
         }
-        restartSystemUIServer()
         onSettingsChanged?()
     }
 
@@ -513,7 +513,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             showError("Failed to change shadow setting.")
             return
         }
-        restartSystemUIServer()
         onSettingsChanged?()
     }
 
@@ -525,7 +524,6 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
             showError("Failed to change date setting.")
             return
         }
-        restartSystemUIServer()
         onSettingsChanged?()
     }
 

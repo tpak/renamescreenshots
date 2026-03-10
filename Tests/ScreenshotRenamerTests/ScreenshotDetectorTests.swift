@@ -132,6 +132,31 @@ class ScreenshotDetectorTests: XCTestCase {
         _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
     }
 
+    func testShowThumbnailToggleRoundTrip() {
+        let detector = ScreenshotDetector()
+        let originalPrefs = detector.detectPreferences()
+
+        // Set to false and verify
+        XCTAssertTrue(detector.setShowThumbnail(false))
+        let afterOff = detector.detectPreferences()
+        XCTAssertFalse(afterOff.showThumbnail, "Thumbnail should be off after setting false")
+
+        // Set back to true and verify (the reported bug scenario)
+        XCTAssertTrue(detector.setShowThumbnail(true))
+        let afterOn = detector.detectPreferences()
+        XCTAssertTrue(afterOn.showThumbnail, "Thumbnail should be on after setting true")
+
+        // Verify a fresh detector also reads the correct value
+        let detector2 = ScreenshotDetector()
+        XCTAssertTrue(
+            detector2.detectPreferences().showThumbnail,
+            "Fresh detector should read show-thumbnail as true"
+        )
+
+        // Restore original
+        _ = detector.setShowThumbnail(originalPrefs.showThumbnail)
+    }
+
     func testSetIncludeCursor() {
         let detector = ScreenshotDetector()
 
