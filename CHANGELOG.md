@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-03-10
+
+### Fixed
+- **Show thumbnail preview toggle now works** — removed unnecessary `killall SystemUIServer` after toggling screenshot preferences (thumbnail, cursor, shadow, date); on macOS 14+ `screencaptureui` reads these preferences fresh on each launch
+
 ## [1.9.0] - 2026-03-09
 
 ### Added
