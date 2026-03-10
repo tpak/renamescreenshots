@@ -39,7 +39,7 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         self.onSettingsChanged = onSettingsChanged
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 550, height: 630),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 650),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -320,18 +320,22 @@ class SettingsWindowController: NSWindowController, NSTextFieldDelegate {
         // ============================================================
         // Bottom Buttons
         // ============================================================
-        let separator3 = NSBox(frame: NSRect(x: margin, y: 55, width: 510, height: 1))
+        currentY -= 15
+
+        let separator3 = NSBox(frame: NSRect(x: margin, y: currentY, width: 510, height: 1))
         separator3.boxType = .separator
         contentView.addSubview(separator3)
 
-        let resetButton = NSButton(frame: NSRect(x: margin, y: 18, width: 120, height: 28))
+        currentY -= 38
+
+        let resetButton = NSButton(frame: NSRect(x: margin, y: currentY, width: 120, height: 28))
         resetButton.title = "Reset to Defaults"
         resetButton.bezelStyle = .rounded
         resetButton.target = self
         resetButton.action = #selector(resetToDefaults)
         contentView.addSubview(resetButton)
 
-        let closeButton = NSButton(frame: NSRect(x: 450, y: 18, width: 80, height: 28))
+        let closeButton = NSButton(frame: NSRect(x: 450, y: currentY, width: 80, height: 28))
         closeButton.title = "Close"
         closeButton.bezelStyle = .rounded
         closeButton.target = self

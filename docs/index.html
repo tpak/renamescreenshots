@@ -156,23 +156,33 @@
     to rename.
 </p>
 
+<!-- Menu Bar -->
+<h2>Menu Bar</h2>
+<p>Click the camera icon in the menu bar to access the app. The menu shows:</p>
+<ul>
+    <li><span class="setting-name">Stop/Start Watcher</span> — Toggle the file watcher on or off.</li>
+    <li><span class="setting-name">Quick Rename...</span> (<kbd>⌘</kbd><kbd>R</kbd>) — Scan and rename existing screenshots in the current folder.</li>
+    <li><span class="setting-name">Settings...</span> (<kbd>⌘</kbd><kbd>,</kbd>) — Open the settings window.</li>
+    <li><span class="setting-name">User Guide</span> — Open this page in your browser.</li>
+</ul>
+<p>Below the actions, the menu displays your current configuration at a glance: save location,
+   prefix, format, and a summary of active options.</p>
+
 <!-- Settings -->
 <h2>Settings</h2>
-<p>Click the camera icon in the menu bar, then select <strong>Settings...</strong> to open the
-   settings window.</p>
+<p>The settings window is organized into three sections: Screenshot Options, App Options, and Debug.</p>
 
-<h3>Save Location</h3>
-<p>Shows where macOS saves screenshots. You can type a path directly or click
-   <strong>Choose...</strong> to pick a folder. Changing this updates the macOS system setting
-   and restarts the screenshot service.</p>
+<h3>Screenshot Options</h3>
 
-<h3>Prefix</h3>
-<p>The filename prefix macOS uses when saving screenshots. The default is
-   <code>Screenshot</code>. You can change it to any non-empty string (for example,
-   <code>Screen Shot</code> or <code>Capture</code>). The renamer automatically adapts its
-   matching pattern to your chosen prefix.</p>
+<p><span class="setting-name">Save Location</span> — Shows where macOS saves screenshots. You
+   can type a path directly or click <strong>Choose...</strong> to pick a folder. Changing this
+   updates the macOS system setting.</p>
 
-<h3>Options</h3>
+<p><span class="setting-name">Prefix</span> — The filename prefix macOS uses when saving
+   screenshots. The default is <code>Screenshot</code>. You can change it to any non-empty
+   string (for example, <code>Screen Shot</code> or <code>Capture</code>). The renamer
+   automatically adapts its matching pattern to your chosen prefix.</p>
+
 <ul>
     <li><span class="setting-name">Show thumbnail preview after capture</span> — Controls
         the floating thumbnail that appears briefly in the corner after taking a screenshot.</li>
@@ -182,22 +192,30 @@
         from window screenshots, useful for cleaner images.</li>
     <li><span class="setting-name">Include date in filename</span> — Toggles whether the
         date and time appear in the screenshot filename.</li>
+</ul>
+
+<p><span class="setting-name">Format</span> — Choose the image format for new screenshots:
+   <strong>PNG</strong> (default), <strong>JPG</strong>, <strong>PDF</strong>, or
+   <strong>TIFF</strong>.</p>
+
+<p><span class="setting-name">Capture Delay</span> — Set a timer before each screenshot is
+   taken: <strong>None</strong> (instant), <strong>5 Seconds</strong>, or
+   <strong>10 Seconds</strong>. Useful when you need time to arrange windows before
+   capturing.</p>
+
+<h3>App Options</h3>
+<ul>
     <li><span class="setting-name">Launch at login</span> — Starts Screenshot Renamer
         automatically when you log in to your Mac.</li>
     <li><span class="setting-name">Automatically check for updates</span> — Periodically
-        checks for new versions and offers to install them.</li>
+        checks for new versions. Choose a frequency: Daily, Weekly, or Monthly.</li>
+    <li><span class="setting-name">Check Now</span> — Immediately check for a new version
+        without waiting for the next automatic check.</li>
+    <li><span class="setting-name">Automatically download and install updates</span> — When
+        enabled, updates are downloaded and installed in the background without prompting.</li>
 </ul>
 
-<h3>Format</h3>
-<p>Choose the image format for new screenshots: <strong>PNG</strong> (default),
-   <strong>JPG</strong>, <strong>PDF</strong>, or <strong>TIFF</strong>.</p>
-
-<h3>Capture Delay</h3>
-<p>Set a timer before each screenshot is taken: <strong>None</strong> (instant),
-   <strong>5 Seconds</strong>, or <strong>10 Seconds</strong>. Useful when you need time to
-   arrange windows before capturing.</p>
-
-<h3>Debug Logging</h3>
+<h3>Debug</h3>
 <p>Enable debug logging to write detailed activity to a log file. Use the <strong>Open</strong>
    button to view the log in Finder, or <strong>Clear</strong> to empty it. You can change the
    log file location with <strong>Set Location...</strong>.</p>
