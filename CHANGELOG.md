@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-10
+
+### Changed
+- **Settings reorganized into sections** — Screenshot Options, App Options, and Debug for clearer organization
+- **Removed "Check for Updates..." from menu bar** — update controls now live exclusively in Settings
+
+### Added
+- **"Automatically download and install updates" toggle** in Settings — controls whether Sparkle downloads updates automatically
+
 ## [1.9.1] - 2026-03-10
 
 ### Fixed

@@ -38,6 +38,11 @@ class UpdateManager {
         set { updaterController.updater.automaticallyChecksForUpdates = newValue }
     }
 
+    var automaticallyDownloadsUpdates: Bool {
+        get { updaterController.updater.automaticallyDownloadsUpdates }
+        set { updaterController.updater.automaticallyDownloadsUpdates = newValue }
+    }
+
     /// Update check interval in seconds
     var updateCheckInterval: TimeInterval {
         get { updaterController.updater.updateCheckInterval }
