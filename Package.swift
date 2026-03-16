@@ -17,7 +17,7 @@ let package = Package(
         .executableTarget(
             name: "ScreenshotRenamer",
             dependencies: ["Sparkle"],
-            exclude: ["Resources/Info.plist", "Resources/AppIcon.icns"]
+            exclude: ["Resources/Info.plist", "Resources/AppIcon.icns", "Resources/ScreenshotRenamer.entitlements"]
         ),
         .testTarget(
             name: "ScreenshotRenamerTests",

@@ -3,10 +3,15 @@ set -e
 
 # Parse arguments
 BUMP_VERSION=false
+SIGN_RELEASE=false
 for arg in "$@"; do
     case $arg in
         --bump)
             BUMP_VERSION=true
+            shift
+            ;;
+        --sign)
+            SIGN_RELEASE=true
             shift
             ;;
     esac
@@ -69,14 +74,59 @@ else
     exit 1
 fi
 
-# Code sign (ad-hoc for local use)
-codesign --force --deep --sign - "$APP_NAME"
+# Code signing
+if [ "$SIGN_RELEASE" = true ]; then
+    SIGN_IDENTITY="Developer ID Application"
+    ENTITLEMENTS="Sources/ScreenshotRenamer/Resources/ScreenshotRenamer.entitlements"
+
+    # Verify certificate is available
+    if ! security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
+        echo "❌ ERROR: No '$SIGN_IDENTITY' certificate found in keychain"
+        exit 1
+    fi
+
+    # Strip extended attributes that create ._* files
+    xattr -rc "$APP_NAME"
+
+    # Sign inside-out: Sparkle XPC services → helper apps → Autoupdate → framework → main app
+    echo "🔐 Signing with Developer ID (inside-out)..."
+    SPARKLE_FW="$APP_DIR/Frameworks/Sparkle.framework"
+    if [ -d "$SPARKLE_FW" ]; then
+        for xpc in "$SPARKLE_FW"/Versions/B/XPCServices/*.xpc; do
+            [ -d "$xpc" ] && codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$xpc"
+        done
+        for helper in "$SPARKLE_FW"/Versions/B/*.app; do
+            [ -d "$helper" ] && codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$helper"
+        done
+        if [ -f "$SPARKLE_FW/Versions/B/Autoupdate" ]; then
+            codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$SPARKLE_FW/Versions/B/Autoupdate"
+        fi
+        codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$SPARKLE_FW"
+    fi
+
+    # Sign main app with entitlements
+    codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_NAME"
+
+    # Verify signature
+    if codesign --verify --deep --strict "$APP_NAME" 2>&1; then
+        echo "✅ Code signature verified"
+    else
+        echo "❌ ERROR: Code signature verification failed"
+        exit 1
+    fi
+else
+    # Ad-hoc sign for local development
+    codesign --force --deep --sign - "$APP_NAME"
+fi
 
 echo ""
 echo "✅ Build complete!"
 echo "📦 App bundle: $(pwd)/$APP_NAME"
 echo "📏 Size: $(du -sh "$APP_NAME" | cut -f1)"
 echo "🏷️  Version: $VERSION"
+if [ "$SIGN_RELEASE" = true ]; then
+    echo "🔐 Signed with Developer ID"
+fi
 echo ""
 echo "To install: cp -r $APP_NAME /Applications/"
 echo "To run now: open $APP_NAME"

@@ -1,54 +1,41 @@
-name: Release Versioned Build
+name: Verify Release Tag
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to release (e.g. v1.1.2)'
-        required: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  create-release:
+  verify-release:
     runs-on: macos-latest
 
     steps:
       - name: Determine tag name
         id: get_version
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME="${{ github.event.inputs.tag }}"
-          else
-            TAG_NAME=${GITHUB_REF#refs/tags/}
-          fi
+          TAG_NAME=${GITHUB_REF#refs/tags/}
           VERSION=${TAG_NAME#v}
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "📌 Tag: $TAG_NAME"
-          echo "📌 Version: $VERSION"
+          echo "Tag: $TAG_NAME, Version: $VERSION"
 
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.get_version.outputs.TAG_NAME }}
-          fetch-depth: 0  # Fetch all history for changelog generation
 
       - name: Verify VERSION file matches tag
         run: |
           FILE_VERSION=$(cat VERSION | tr -d '[:space:]')
           TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
-          echo "VERSION file: $FILE_VERSION"
-          echo "Git tag: $TAG_VERSION"
           if [ "$FILE_VERSION" != "$TAG_VERSION" ]; then
-            echo "❌ ERROR: VERSION file ($FILE_VERSION) does not match git tag ($TAG_VERSION)"
+            echo "ERROR: VERSION file ($FILE_VERSION) does not match git tag ($TAG_VERSION)"
             exit 1
           fi
-          echo "✅ Version verified"
+          echo "Version verified: $FILE_VERSION"
 
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@v1
@@ -58,151 +45,12 @@ jobs:
       - name: Run tests
         run: swift test
 
-      - name: Build app
+      - name: Verify summary
         run: |
-          chmod +x Scripts/build-app.sh Scripts/inject-version.sh
-          ./Scripts/build-app.sh
-
-      - name: Create ZIP archive
-        run: |
-          ditto -c -k --keepParent ScreenshotRenamer.app ScreenshotRenamer.zip
-          echo "📦 Created ScreenshotRenamer.zip"
-
-      - name: Create DMG
-        run: |
-          hdiutil create -volname "Screenshot Renamer" \
-            -srcfolder ScreenshotRenamer.app \
-            -ov -format UDZO \
-            ScreenshotRenamer.dmg
-          echo "💿 Created ScreenshotRenamer.dmg"
-
-      - name: Generate checksums
-        run: |
-          shasum -a 256 ScreenshotRenamer.zip > ScreenshotRenamer.zip.sha256
-          shasum -a 256 ScreenshotRenamer.dmg > ScreenshotRenamer.dmg.sha256
-          echo "✅ Generated checksums"
-          cat ScreenshotRenamer.zip.sha256
-          cat ScreenshotRenamer.dmg.sha256
-
-      - name: Download Sparkle tools
-        run: |
-          SPARKLE_VERSION="2.8.1"
-          curl -L -o Sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz"
-          mkdir -p sparkle-tools
-          tar -xf Sparkle.tar.xz -C sparkle-tools
-          echo "✅ Downloaded Sparkle ${SPARKLE_VERSION} tools"
-
-      - name: Sign update and generate appcast
-        env:
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-        run: |
-          SIGN_OUTPUT=$(echo "$SPARKLE_PRIVATE_KEY" | ./sparkle-tools/bin/sign_update ScreenshotRenamer.zip --ed-key-file -)
-          ED_SIGNATURE=$(echo "$SIGN_OUTPUT" | grep -o 'sparkle:edSignature="[^"]*"' | cut -d'"' -f2)
-          FILE_LENGTH=$(echo "$SIGN_OUTPUT" | grep -o 'length="[^"]*"' | cut -d'"' -f2)
-          VERSION=${{ steps.get_version.outputs.VERSION }}
-          TAG=${{ steps.get_version.outputs.TAG_NAME }}
-          PUB_DATE=$(date -R)
-          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/ScreenshotRenamer.zip"
-
-          cat > appcast.xml <<EOF
-          <?xml version="1.0" standalone="yes"?>
-          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-            <channel>
-              <title>Screenshot Renamer</title>
-              <item>
-                <title>Version ${VERSION}</title>
-                <pubDate>${PUB_DATE}</pubDate>
-                <sparkle:version>${VERSION}</sparkle:version>
-                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-                <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
-                <enclosure url="${DOWNLOAD_URL}"
-                           sparkle:edSignature="${ED_SIGNATURE}"
-                           length="${FILE_LENGTH}"
-                           type="application/octet-stream" />
-              </item>
-            </channel>
-          </rss>
-          EOF
-          echo "✅ Generated appcast.xml with EdDSA signature"
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Find the previous tag
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ steps.get_version.outputs.TAG_NAME }}^ 2>/dev/null || echo "")
-
-          if [ -z "$PREVIOUS_TAG" ]; then
-            echo "No previous tag found, using all commits"
-            PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
-          fi
-
-          echo "Generating changelog from $PREVIOUS_TAG to ${{ steps.get_version.outputs.TAG_NAME }}"
-
-          # Get commits between tags
-          COMMITS=$(git log $PREVIOUS_TAG..${{ steps.get_version.outputs.TAG_NAME }} --pretty=format:"- %s (%h)" --no-merges)
-
-          # Create changelog file
-          cat <<EOF > changelog.md
-          ## What's Changed
-
-          $COMMITS
-
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...${{ steps.get_version.outputs.TAG_NAME }}
-          EOF
-
-          echo "changelog_file=changelog.md" >> $GITHUB_OUTPUT
-
-      - name: Create release notes
-        run: |
-          cat <<EOF > release_notes.md
-          $(cat changelog.md)
-
-          ---
-          📖 See the [README](https://github.com/${{ github.repository }}#readme) for installation and usage instructions.
-          EOF
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create ${{ steps.get_version.outputs.TAG_NAME }} \
-            --title "Screenshot Renamer v${{ steps.get_version.outputs.VERSION }}" \
-            --notes-file release_notes.md \
-            --latest \
-            ScreenshotRenamer.zip \
-            ScreenshotRenamer.zip.sha256 \
-            ScreenshotRenamer.dmg \
-            ScreenshotRenamer.dmg.sha256
-
-      - name: Deploy appcast to GitHub Pages
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Save appcast before switching branches
-          cp appcast.xml /tmp/appcast.xml
-          # Clean working tree so branch switch succeeds
-          git checkout -- .
-          git clean -fd
-          git fetch origin gh-pages || true
-          if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
-            git checkout gh-pages
-          else
-            git checkout --orphan gh-pages
-            git rm -rf . 2>/dev/null || true
-          fi
-          cp /tmp/appcast.xml appcast.xml
-          git add appcast.xml
-          git diff --cached --quiet || git commit -m "Update appcast for v${{ steps.get_version.outputs.VERSION }}"
-          git push origin gh-pages
-          echo "✅ Deployed appcast.xml to GitHub Pages"
-
-      - name: Release summary
-        run: |
-          echo "## ✅ Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "## Release Tag Verified" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Version:** ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag:** ${{ steps.get_version.outputs.TAG_NAME }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Type:** Stable release" >> $GITHUB_STEP_SUMMARY
-          echo "- **Artifacts:** ZIP, DMG, and checksums" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests:** Passed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📥 [Download Release](https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.TAG_NAME }})" >> $GITHUB_STEP_SUMMARY
+          echo "Release was created locally with code signing and notarization." >> $GITHUB_STEP_SUMMARY
