@@ -32,7 +32,12 @@ jobs:
           fi
           # Copy docs content to root (index.html, etc.)
           cp -r /tmp/docs-deploy/* .
-          git add -A
+          # Only stage files from docs — do NOT use 'git add -A' which
+          # could accidentally modify other gh-pages content like appcast.xml
+          find /tmp/docs-deploy -type f | while read f; do
+              relative="${f#/tmp/docs-deploy/}"
+              git add "$relative"
+          done
           git diff --cached --quiet || git commit -m "Deploy docs from main"
           git push origin gh-pages
           echo "✅ Deployed docs to GitHub Pages"
