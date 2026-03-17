@@ -142,6 +142,14 @@ We use [Semantic Versioning](https://semver.org/):
 - **MINOR** (1.0.0 → 1.1.0): New features, backwards compatible
 - **PATCH** (1.0.0 → 1.0.1): Bug fixes, backwards compatible
 
+### Prerequisites
+
+Releases are done locally (not in CI) because they require code signing and notarization:
+
+- **Developer ID Application certificate** in your Keychain
+- **Notarization credentials** stored via `xcrun notarytool store-credentials "screenshotrenamer-notary"`
+- **Sparkle EdDSA private key** in your Keychain (for update signing)
+
 ### Release Process
 
 #### 1. Update CHANGELOG.md
@@ -160,61 +168,37 @@ Move "Unreleased" changes to a new version section:
 - Bug fix description
 ```
 
-Add comparison links at the bottom:
-
-```markdown
-[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.0.0...v1.1.0
-```
-
-#### 2. Bump Version
-
-Edit the `/VERSION` file:
+#### 2. Run the Release Script
 
 ```bash
-echo "1.1.0" > VERSION
+./Scripts/release.sh 1.1.0
 ```
 
-#### 3. Commit Version Bump
+The script handles everything:
+- Bumps VERSION file and commits
+- Builds release binary with Developer ID signing (hardened runtime)
+- Re-signs Sparkle framework components inside-out
+- Notarizes with Apple and staples the ticket
+- Signs the ZIP with Sparkle EdDSA for update verification
+- Creates DMG and SHA256 checksums
+- Creates git tag and GitHub release with artifacts
+- Deploys appcast.xml to GitHub Pages
+- Updates the Homebrew Cask formula
 
-```bash
-git add VERSION CHANGELOG.md
-git commit -m "chore: bump version to 1.1.0"
-```
-
-#### 4. Create and Push Tag
-
-```bash
-git tag v1.1.0
-git push origin main
-git push origin v1.1.0
-```
-
-#### 5. GitHub Actions Takes Over
-
-The `release-tag.yml` workflow automatically:
-- Verifies VERSION file matches tag
-- Runs full test suite
-- Builds release binary
-- Creates ZIP and DMG artifacts
-- Generates SHA256 checksums
-- Creates GitHub release with changelog
-- Uploads all artifacts
-
-#### 6. Verify Release
+#### 3. Verify Release
 
 1. Visit https://github.com/tpak/ScreenshotRenamer/releases
-2. Verify the release was created
-3. Download and test artifacts locally:
-   ```bash
-   # Download and verify
-   shasum -a 256 -c ScreenshotRenamer.zip.sha256
+2. Download and test on another Mac — should open without Gatekeeper warnings
+3. Test Homebrew install: `brew tap tpak/screenshotrenamer && brew install --cask screenshot-renamer`
+4. Test Sparkle auto-update from the previous version
 
-   # Extract and test
-   unzip ScreenshotRenamer.zip
-   open ScreenshotRenamer.app
-   ```
-4. Edit release notes if needed
+### Build Variants
+
+```bash
+./Scripts/build-app.sh          # Ad-hoc signed (local development)
+./Scripts/build-app.sh --sign   # Developer ID signed (hardened runtime)
+./Scripts/build-app.sh --bump   # Ad-hoc signed + increment patch version
+```
 
 ## Testing
 
@@ -242,7 +226,7 @@ We maintain comprehensive test coverage:
 - Shell command execution (5 tests)
 - Debug logger (5 tests)
 
-**Total: 74 tests**
+**Total: 79 tests**
 
 ### Writing Tests
 
