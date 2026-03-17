@@ -2,16 +2,12 @@
 set -euo pipefail
 
 VERSION=""
+REPO="tpak/ScreenshotRenamer"
+APPCAST_URL="https://tpak.github.io/ScreenshotRenamer/appcast.xml"
 
-# Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        *)
-            if [[ -z "$VERSION" ]]; then
-                VERSION="$1"
-            fi
-            shift
-            ;;
+        *) [[ -z "$VERSION" ]] && VERSION="$1"; shift ;;
     esac
 done
 
@@ -37,11 +33,6 @@ if [[ -n "$(git diff --stat HEAD)" ]]; then
     exit 1
 fi
 
-if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
-    echo "Error: Tag v$VERSION already exists"
-    exit 1
-fi
-
 for cmd in gh ditto xcrun codesign; do
     if ! command -v "$cmd" &>/dev/null; then
         echo "Error: Required tool '$cmd' not found"
@@ -49,54 +40,32 @@ for cmd in gh ditto xcrun codesign; do
     fi
 done
 
-# Verify Developer ID certificate is available
 SIGN_IDENTITY="Developer ID Application"
 if ! security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
     echo "Error: No '$SIGN_IDENTITY' certificate found in keychain."
-    echo "       Install a Developer ID Application certificate from https://developer.apple.com"
     exit 1
 fi
 
-# Verify notarization credentials are stored
 NOTARY_PROFILE="screenshotrenamer-notary"
 if ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" &>/dev/null; then
-    echo "Error: Notarization credentials not found. Store them with:"
+    echo "Error: Notarization credentials not found. Run:"
     echo "  xcrun notarytool store-credentials \"$NOTARY_PROFILE\" \\"
-    echo "    --apple-id \"YOUR_APPLE_ID\" --team-id \"YOUR_TEAM_ID\" --password \"APP_SPECIFIC_PASSWORD\""
+    echo "    --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID --password APP_SPECIFIC_PASSWORD"
     exit 1
 fi
 
-# Find sign_update (Sparkle EdDSA signing tool)
-SIGN_UPDATE=""
-SPARKLE_PATHS=(
-    ".build/artifacts/sparkle/Sparkle/bin/sign_update"
-)
-for path in "${SPARKLE_PATHS[@]}"; do
-    for expanded in $path; do
-        if [[ -x "$expanded" ]]; then
-            SIGN_UPDATE="$expanded"
-            break 2
-        fi
-    done
-done
-
-if [[ -z "$SIGN_UPDATE" ]]; then
-    echo "Error: Sparkle sign_update not found. Run 'swift build' first to resolve SPM packages."
+SIGN_UPDATE=".build/artifacts/sparkle/Sparkle/bin/sign_update"
+if [[ ! -x "$SIGN_UPDATE" ]]; then
+    echo "Error: Sparkle sign_update not found at $SIGN_UPDATE"
+    echo "       Run 'swift build' first to resolve SPM packages."
     exit 1
-fi
-
-echo "Using sign_update: $SIGN_UPDATE"
-
-# Verify Sparkle EdDSA private key is available
-if ! "$SIGN_UPDATE" --help &>/dev/null && ! "$SIGN_UPDATE" 2>&1 | grep -q "Usage"; then
-    echo "Warning: sign_update may not be working correctly"
 fi
 
 echo ""
 echo "=== Releasing Screenshot Renamer v$VERSION ==="
 echo ""
 
-# ── Phase 2: Bump version + build ──────────────────────────────────
+# ── Phase 2: Version bump (idempotent) ─────────────────────────────
 
 CURRENT_VERSION=$(cat VERSION | tr -d '[:space:]')
 if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
@@ -105,9 +74,17 @@ if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
     ./Scripts/inject-version.sh
     git add VERSION
     git commit -m "Bump version to $VERSION"
-else
-    echo "── Version already set to $VERSION."
 fi
+
+# Push if local is ahead of remote
+if [[ -n "$(git log origin/main..HEAD --oneline 2>/dev/null)" ]]; then
+    echo "── Pushing version bump to main..."
+    git push origin main
+fi
+
+echo "── Version: $VERSION"
+
+# ── Phase 3: Build & sign ──────────────────────────────────────────
 
 echo "── Building release..."
 ./Scripts/build-app.sh --sign
@@ -118,7 +95,7 @@ if [[ ! -d "$APP_NAME" ]]; then
     exit 1
 fi
 
-# ── Phase 3: Notarize ──────────────────────────────────────────────
+# ── Phase 4: Notarize ──────────────────────────────────────────────
 
 RELEASE_DIR="/tmp/screenshotrenamer-release"
 rm -rf "$RELEASE_DIR"
@@ -128,26 +105,23 @@ ZIP_PATH="$RELEASE_DIR/ScreenshotRenamer.zip"
 echo "── Creating zip for notarization..."
 ditto -c -k --norsrc --keepParent "$APP_NAME" "$ZIP_PATH"
 
-echo "── Submitting for notarization (this may take a few minutes)..."
+echo "── Submitting for notarization..."
 xcrun notarytool submit "$ZIP_PATH" --keychain-profile "$NOTARY_PROFILE" --wait
 
 echo "── Stapling notarization ticket..."
 xcrun stapler staple "$APP_NAME"
+
+# Verify staple
+if ! xcrun stapler validate "$APP_NAME" &>/dev/null; then
+    echo "Error: Stapler validation failed"
+    exit 1
+fi
 
 # Strip xattrs after stapling, re-zip without resource forks
 xattr -rc "$APP_NAME"
 rm "$ZIP_PATH"
 ditto -c -k --norsrc --keepParent "$APP_NAME" "$ZIP_PATH"
 echo "  Notarized and stapled."
-
-# ── Phase 4: Create DMG ────────────────────────────────────────────
-
-DMG_PATH="$RELEASE_DIR/ScreenshotRenamer.dmg"
-echo "── Creating DMG..."
-hdiutil create -volname "Screenshot Renamer" \
-    -srcfolder "$APP_NAME" \
-    -ov -format UDZO \
-    "$DMG_PATH"
 
 # ── Phase 5: Sparkle EdDSA sign ────────────────────────────────────
 
@@ -158,79 +132,104 @@ echo "  $SIGN_OUTPUT"
 ED_SIGNATURE="$(echo "$SIGN_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')"
 FILE_LENGTH="$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')"
 
-if [[ -z "$ED_SIGNATURE" || -z "$FILE_LENGTH" ]]; then
-    echo "Error: Failed to parse Sparkle signature output"
-    echo "Raw output: $SIGN_OUTPUT"
+if [[ -z "$ED_SIGNATURE" ]]; then
+    echo "Error: Failed to parse EdDSA signature from sign_update output"
+    exit 1
+fi
+if [[ -z "$FILE_LENGTH" ]]; then
+    echo "Error: Failed to parse file length from sign_update output"
     exit 1
 fi
 
 echo "  Signature: ${ED_SIGNATURE:0:20}..."
 echo "  Length: $FILE_LENGTH"
 
-# ── Phase 6: Generate checksums ────────────────────────────────────
+# ── Phase 6: Artifacts ─────────────────────────────────────────────
+
+DMG_PATH="$RELEASE_DIR/ScreenshotRenamer.dmg"
+echo "── Creating DMG..."
+hdiutil create -volname "Screenshot Renamer" \
+    -srcfolder "$APP_NAME" \
+    -ov -format UDZO \
+    "$DMG_PATH"
 
 echo "── Generating checksums..."
-cd "$RELEASE_DIR"
-shasum -a 256 ScreenshotRenamer.zip > ScreenshotRenamer.zip.sha256
-shasum -a 256 ScreenshotRenamer.dmg > ScreenshotRenamer.dmg.sha256
-ZIP_SHA256=$(shasum -a 256 ScreenshotRenamer.zip | awk '{print $1}')
-cd - > /dev/null
-
+(cd "$RELEASE_DIR" && shasum -a 256 ScreenshotRenamer.zip > ScreenshotRenamer.zip.sha256)
+(cd "$RELEASE_DIR" && shasum -a 256 ScreenshotRenamer.dmg > ScreenshotRenamer.dmg.sha256)
+ZIP_SHA256=$(cd "$RELEASE_DIR" && shasum -a 256 ScreenshotRenamer.zip | awk '{print $1}')
 echo "  ZIP SHA256: $ZIP_SHA256"
 
-# ── Phase 7: GitHub release ────────────────────────────────────────
+# ── Phase 7: Tag & GitHub release (idempotent) ─────────────────────
 
-echo "── Creating git tag and pushing..."
-# Check if tag already exists remotely (e.g., created by auto-tag.yml)
-if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q "v$VERSION"; then
-    echo "  Tag v$VERSION already exists on remote (created by auto-tag workflow)."
-    # Ensure we have the tag locally
-    git fetch origin "refs/tags/v$VERSION:refs/tags/v$VERSION" 2>/dev/null || true
+echo "── Tagging..."
+if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+    echo "  Tag v$VERSION exists locally."
+elif git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; then
+    echo "  Tag v$VERSION exists on remote. Fetching."
+    git fetch origin "refs/tags/v$VERSION:refs/tags/v$VERSION"
 else
     git tag -a "v$VERSION" -m "Release v$VERSION"
+    echo "  Created tag v$VERSION."
 fi
-# Push version bump and tag (skips tag if already exists)
-git push origin main 2>/dev/null || true
-git push origin "v$VERSION" 2>/dev/null || true
+git push origin "v$VERSION" 2>&1 || true
 
-echo "── Creating GitHub release..."
-
-# Generate changelog from git log
-PREVIOUS_TAG=$(git describe --tags --abbrev=0 "v$VERSION^" 2>/dev/null || echo "")
-if [[ -n "$PREVIOUS_TAG" ]]; then
-    COMMITS=$(git log "$PREVIOUS_TAG..v$VERSION" --pretty=format:"- %s (%h)" --no-merges)
+echo "── GitHub release..."
+if gh release view "v$VERSION" &>/dev/null; then
+    echo "  Release v$VERSION already exists. Skipping creation."
 else
-    COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges -10)
-fi
+    PREVIOUS_TAG=$(git describe --tags --abbrev=0 "v$VERSION^" 2>/dev/null || echo "")
+    if [[ -n "$PREVIOUS_TAG" ]]; then
+        COMMITS=$(git log "$PREVIOUS_TAG..v$VERSION" --pretty=format:"- %s (%h)" --no-merges)
+    else
+        COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges -10)
+    fi
 
-RELEASE_NOTES="## What's Changed
+    RELEASE_NOTES="## What's Changed
 
 $COMMITS
 
-**Full Changelog**: https://github.com/tpak/ScreenshotRenamer/compare/${PREVIOUS_TAG}...v$VERSION
+**Full Changelog**: https://github.com/$REPO/compare/${PREVIOUS_TAG}...v$VERSION
 
 ---
-📖 See the [README](https://github.com/tpak/ScreenshotRenamer#readme) for installation and usage instructions."
+See the [README](https://github.com/$REPO#readme) for installation and usage instructions."
 
-gh release create "v$VERSION" \
-    "$ZIP_PATH" \
-    "$ZIP_PATH.sha256" \
-    "$DMG_PATH" \
-    "$DMG_PATH.sha256" \
-    --title "Screenshot Renamer v$VERSION" \
-    --notes "$RELEASE_NOTES" \
-    --latest
+    gh release create "v$VERSION" \
+        "$ZIP_PATH" \
+        "$ZIP_PATH.sha256" \
+        "$DMG_PATH" \
+        "$DMG_PATH.sha256" \
+        --title "Screenshot Renamer v$VERSION" \
+        --notes "$RELEASE_NOTES" \
+        --latest
+    echo "  GitHub release created."
+fi
 
-echo "── GitHub release created."
+# Verify release has assets
+ASSET_COUNT=$(gh release view "v$VERSION" --json assets --jq '.assets | length')
+if [[ "$ASSET_COUNT" -lt 4 ]]; then
+    echo "Error: GitHub release has $ASSET_COUNT assets (expected 4)"
+    exit 1
+fi
+echo "  Verified: $ASSET_COUNT assets on GitHub release."
 
-# ── Phase 8: Update appcast ────────────────────────────────────────
+# ── Phase 8: Appcast (idempotent, verified) ────────────────────────
 
-echo "── Updating appcast.xml..."
+echo "── Updating appcast..."
 PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
-DOWNLOAD_URL="https://github.com/tpak/ScreenshotRenamer/releases/download/v$VERSION/ScreenshotRenamer.zip"
+DOWNLOAD_URL="https://github.com/$REPO/releases/download/v$VERSION/ScreenshotRenamer.zip"
 
-APPCAST_CONTENT="<?xml version=\"1.0\" standalone=\"yes\"?>
-<rss xmlns:sparkle=\"http://www.andymatuschak.org/xml-namespaces/sparkle\" version=\"2.0\">
+PAGES_DIR="/tmp/screenshotrenamer-ghpages"
+rm -rf "$PAGES_DIR"
+
+if ! git clone --branch gh-pages --single-branch --depth 1 \
+    "https://github.com/$REPO.git" "$PAGES_DIR"; then
+    echo "Error: Failed to clone gh-pages branch"
+    exit 1
+fi
+
+cat > "$PAGES_DIR/appcast.xml" <<APPCAST_EOF
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
   <channel>
     <title>Screenshot Renamer</title>
     <item>
@@ -239,76 +238,132 @@ APPCAST_CONTENT="<?xml version=\"1.0\" standalone=\"yes\"?>
       <sparkle:version>$VERSION</sparkle:version>
       <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>11.0</sparkle:minimumSystemVersion>
-      <enclosure url=\"$DOWNLOAD_URL\"
-                 sparkle:edSignature=\"$ED_SIGNATURE\"
-                 length=\"$FILE_LENGTH\"
-                 type=\"application/octet-stream\" />
+      <enclosure url="$DOWNLOAD_URL"
+                 sparkle:edSignature="$ED_SIGNATURE"
+                 length="$FILE_LENGTH"
+                 type="application/octet-stream" />
     </item>
   </channel>
-</rss>"
+</rss>
+APPCAST_EOF
 
-# Deploy appcast to gh-pages using a temporary clone (avoids polluting working tree)
-PAGES_DIR="/tmp/screenshotrenamer-ghpages"
-rm -rf "$PAGES_DIR"
-git clone --branch gh-pages --single-branch --depth 1 \
-    "https://github.com/tpak/ScreenshotRenamer.git" "$PAGES_DIR" 2>/dev/null
-
-echo "$APPCAST_CONTENT" > "$PAGES_DIR/appcast.xml"
-cd "$PAGES_DIR"
-git add appcast.xml
-if ! git diff --cached --quiet; then
-    git commit -m "Update appcast for v$VERSION"
-    git push origin gh-pages
-    echo "── Appcast deployed to gh-pages."
+(cd "$PAGES_DIR" && git add appcast.xml)
+if ! (cd "$PAGES_DIR" && git diff --cached --quiet); then
+    (cd "$PAGES_DIR" && git commit -m "Update appcast for v$VERSION")
+    if ! (cd "$PAGES_DIR" && git push origin gh-pages); then
+        echo "Error: Failed to push appcast to gh-pages"
+        exit 1
+    fi
+    echo "  Appcast committed and pushed."
 else
-    echo "── Appcast unchanged."
+    echo "  Appcast already up to date on gh-pages."
 fi
-cd - > /dev/null
 rm -rf "$PAGES_DIR"
 
-# ── Phase 9: Update Homebrew Cask ──────────────────────────────────
+# Verify appcast is live
+echo "── Verifying appcast deployment..."
+RETRIES=6
+for i in $(seq 1 $RETRIES); do
+    LIVE_VERSION=$(curl -sf "$APPCAST_URL" | grep -o '<sparkle:version>[^<]*' | head -1 | sed 's/<sparkle:version>//')
+    if [[ "$LIVE_VERSION" == "$VERSION" ]]; then
+        echo "  Appcast verified: v$LIVE_VERSION"
+        break
+    fi
+    if [[ $i -eq $RETRIES ]]; then
+        echo "  WARNING: Appcast not yet showing v$VERSION (still v$LIVE_VERSION)."
+        echo "  GitHub Pages may take up to 60s to propagate. Verify manually:"
+        echo "  curl -s $APPCAST_URL | grep sparkle:version"
+        break
+    fi
+    echo "  Waiting for GitHub Pages cache (attempt $i/$RETRIES)..."
+    sleep 5
+done
+
+# ── Phase 9: Homebrew Cask (idempotent, verified) ──────────────────
 
 echo "── Updating Homebrew Cask..."
 TAP_DIR="/tmp/homebrew-screenshotrenamer"
-if gh repo view tpak/homebrew-screenshotrenamer &>/dev/null; then
-    rm -rf "$TAP_DIR"
-    gh repo clone tpak/homebrew-screenshotrenamer "$TAP_DIR" 2>/dev/null
+rm -rf "$TAP_DIR"
+
+if ! gh repo view tpak/homebrew-screenshotrenamer &>/dev/null; then
+    echo "  WARNING: Homebrew tap repo not found. Create it with:"
+    echo "    gh repo create tpak/homebrew-screenshotrenamer --public"
+else
+    if ! gh repo clone tpak/homebrew-screenshotrenamer "$TAP_DIR"; then
+        echo "Error: Failed to clone Homebrew tap repo"
+        exit 1
+    fi
 
     CASK_FILE="$TAP_DIR/Casks/screenshot-renamer.rb"
-    if [[ -f "$CASK_FILE" ]]; then
-        sed -i '' "s/version \"[^\"]*\"/version \"$VERSION\"/" "$CASK_FILE"
-        sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"$ZIP_SHA256\"/" "$CASK_FILE"
+    if [[ ! -f "$CASK_FILE" ]]; then
+        echo "Error: Cask file not found at $CASK_FILE"
+        exit 1
+    fi
 
-        cd "$TAP_DIR"
-        git add -A
-        if ! git diff --cached --quiet; then
-            git commit -m "Update to v$VERSION"
-            git push origin main
-            echo "── Homebrew Cask updated to v$VERSION."
-        else
-            echo "── Cask already up to date."
+    sed -i '' "s/version \"[^\"]*\"/version \"$VERSION\"/" "$CASK_FILE"
+    sed -i '' "s/sha256 \"[^\"]*\"/sha256 \"$ZIP_SHA256\"/" "$CASK_FILE"
+
+    (cd "$TAP_DIR" && git add -A)
+    if ! (cd "$TAP_DIR" && git diff --cached --quiet); then
+        (cd "$TAP_DIR" && git commit -m "Update to v$VERSION")
+        if ! (cd "$TAP_DIR" && git push origin main); then
+            echo "Error: Failed to push Homebrew cask update"
+            exit 1
         fi
-        cd - > /dev/null
+        echo "  Homebrew Cask updated to v$VERSION."
     else
-        echo "  Warning: Cask file not found at $CASK_FILE. Skipping Homebrew update."
+        echo "  Homebrew Cask already at v$VERSION."
     fi
     rm -rf "$TAP_DIR"
-else
-    echo "  Homebrew tap repo not found. Skipping. Create it with:"
-    echo "    gh repo create tpak/homebrew-screenshotrenamer --public"
 fi
 
-# ── Phase 10: Summary ─────────────────────────────────────────────
+# ── Phase 10: Final verification ───────────────────────────────────
 
 echo ""
-echo "=== Release v$VERSION complete! ==="
+echo "── Final verification ──"
+
+PASS=true
+
+# GitHub release
+ASSET_COUNT=$(gh release view "v$VERSION" --json assets --jq '.assets | length')
+if [[ "$ASSET_COUNT" -ge 4 ]]; then
+    echo "  [PASS] GitHub release: v$VERSION with $ASSET_COUNT assets"
+else
+    echo "  [FAIL] GitHub release: expected 4 assets, got $ASSET_COUNT"
+    PASS=false
+fi
+
+# Appcast
+LIVE_VERSION=$(curl -sf "$APPCAST_URL" | grep -o '<sparkle:version>[^<]*' | head -1 | sed 's/<sparkle:version>//')
+if [[ "$LIVE_VERSION" == "$VERSION" ]]; then
+    echo "  [PASS] Sparkle appcast: v$LIVE_VERSION"
+else
+    echo "  [WARN] Sparkle appcast: v$LIVE_VERSION (Pages cache may need up to 60s)"
+    echo "         Verify: curl -s $APPCAST_URL | grep sparkle:version"
+fi
+
+# Homebrew
+if gh repo view tpak/homebrew-screenshotrenamer &>/dev/null; then
+    CASK_VERSION=$(gh api repos/tpak/homebrew-screenshotrenamer/contents/Casks/screenshot-renamer.rb \
+        -H "Accept: application/vnd.github.v3.raw" 2>/dev/null | grep -o 'version "[^"]*"' | head -1 | cut -d'"' -f2)
+    if [[ "$CASK_VERSION" == "$VERSION" ]]; then
+        echo "  [PASS] Homebrew Cask: v$CASK_VERSION"
+    else
+        echo "  [FAIL] Homebrew Cask: v$CASK_VERSION (expected v$VERSION)"
+        PASS=false
+    fi
+fi
+
 echo ""
-echo "  GitHub release: https://github.com/tpak/ScreenshotRenamer/releases/tag/v$VERSION"
-echo "  Appcast updated with EdDSA signature"
-echo "  ZIP SHA256: $ZIP_SHA256"
+if [[ "$PASS" == true ]]; then
+    echo "=== Release v$VERSION complete! ==="
+else
+    echo "=== Release v$VERSION finished with warnings — check above ==="
+fi
 echo ""
-echo "  Artifacts in $RELEASE_DIR:"
-echo "    - ScreenshotRenamer.zip (signed, notarized, stapled)"
-echo "    - ScreenshotRenamer.dmg"
-echo "    - *.sha256 checksums"
+echo "  GitHub:   https://github.com/$REPO/releases/tag/v$VERSION"
+echo "  Appcast:  $APPCAST_URL"
+echo "  Homebrew: brew tap tpak/screenshotrenamer && brew install --cask screenshot-renamer"
+echo ""
+echo "  Artifacts: $RELEASE_DIR/"
 echo ""
