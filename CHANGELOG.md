@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-03-17
+
+### Changed
+- **README updated** — Homebrew install now recommended as primary installation method
+- **CONTRIBUTING.md updated** — release process now documents local signing workflow with `Scripts/release.sh`
+- Updated test count references (74 → 79)
+
+## [1.11.0] - 2026-03-17
+
+### Added
+- **Code signing with Developer ID** — app is now signed with `Developer ID Application: Christopher Tirpak` and hardened runtime
+- **Apple notarization** — app is notarized and stapled, no more Gatekeeper warnings
+- **Homebrew Cask distribution** — install via `brew tap tpak/screenshotrenamer && brew install --cask screenshot-renamer`
+- **Local release script** (`Scripts/release.sh`) — automates full release: build, sign, notarize, Sparkle EdDSA sign, GitHub release, appcast, Homebrew update
+- **`--sign` flag for `build-app.sh`** — Developer ID signing with inside-out Sparkle framework re-signing
+- **Entitlements file** — hardened runtime without App Sandbox (app needs file system access, defaults, FSEvents)
+
+### Changed
+- **Releases are now local** — CI simplified to test-only verification on tags; signing and notarization done locally
+- **auto-tag.yml** — no longer triggers release workflow (tags created by release script)
+
 ## [1.10.0] - 2026-03-10
 
 ### Changed
@@ -189,7 +210,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Whitelist support for directory restrictions
 - Sandbox-ready architecture
 
-[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/tpak/ScreenshotRenamer/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.9.1...v1.10.0
+[1.9.1]: https://github.com/tpak/ScreenshotRenamer/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.7.0...v1.9.0
 [1.7.0]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.3...v1.7.0
 [1.6.3]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.2...v1.6.3
 [1.6.2]: https://github.com/tpak/ScreenshotRenamer/compare/v1.6.1...v1.6.2

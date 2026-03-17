@@ -14,12 +14,20 @@ Also handles 24-hour timestamps (prefix lowercasing) and parenthesized sequence 
 
 ## Installation
 
-### Download (Recommended)
+### Homebrew (Recommended)
+
+```bash
+brew tap tpak/screenshotrenamer
+brew install --cask screenshot-renamer
+```
+
+The app is code-signed and notarized by Apple — no Gatekeeper warnings. Sparkle handles updates automatically after install.
+
+### Download
 
 1. Download **ScreenshotRenamer.dmg** from [GitHub Releases](https://github.com/tpak/ScreenshotRenamer/releases/latest)
 2. Open the DMG and drag the app to Applications
-3. Right-click the app and select "Open" (first run only, to bypass Gatekeeper)
-4. The camera icon appears in your menu bar — screenshots are now automatically renamed
+3. The camera icon appears in your menu bar — screenshots are now automatically renamed
 
 ### Build from Source
 
@@ -67,11 +75,13 @@ The app auto-detects your macOS screenshot location and prefix via `com.apple.sc
 ## Development
 
 ```bash
-swift test    # Run all 74 tests
-swift build   # Debug build
-./Scripts/build-app.sh          # Build release app bundle
+swift test                      # Run all 79 tests
+swift build                     # Debug build
+./Scripts/build-app.sh          # Build app bundle (ad-hoc signed)
+./Scripts/build-app.sh --sign   # Build with Developer ID signing
 ./Scripts/build-app.sh --bump   # Build and increment patch version
 ./Scripts/bump-version.sh minor # Manually bump minor version
+./Scripts/release.sh X.Y.Z     # Full release: sign, notarize, publish, update Homebrew
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development workflow and release process.
@@ -79,6 +89,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development workflow and rel
 ## Uninstallation
 
 ```bash
+# If installed via Homebrew:
+brew uninstall --cask screenshot-renamer
+
+# If installed manually:
 pkill ScreenshotRenamer; rm -rf /Applications/ScreenshotRenamer.app
 ```
 
