@@ -181,9 +181,17 @@ echo "  ZIP SHA256: $ZIP_SHA256"
 # ── Phase 7: GitHub release ────────────────────────────────────────
 
 echo "── Creating git tag and pushing..."
-git tag -a "v$VERSION" -m "Release v$VERSION"
-# Push tag and version bump together so auto-tag.yml sees the tag already exists
-git push origin main "v$VERSION"
+# Check if tag already exists remotely (e.g., created by auto-tag.yml)
+if git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q "v$VERSION"; then
+    echo "  Tag v$VERSION already exists on remote (created by auto-tag workflow)."
+    # Ensure we have the tag locally
+    git fetch origin "refs/tags/v$VERSION:refs/tags/v$VERSION" 2>/dev/null || true
+else
+    git tag -a "v$VERSION" -m "Release v$VERSION"
+fi
+# Push version bump and tag (skips tag if already exists)
+git push origin main 2>/dev/null || true
+git push origin "v$VERSION" 2>/dev/null || true
 
 echo "── Creating GitHub release..."
 
@@ -239,22 +247,14 @@ APPCAST_CONTENT="<?xml version=\"1.0\" standalone=\"yes\"?>
   </channel>
 </rss>"
 
-# Save appcast and deploy to gh-pages
-echo "$APPCAST_CONTENT" > /tmp/appcast.xml
+# Deploy appcast to gh-pages using a temporary clone (avoids polluting working tree)
+PAGES_DIR="/tmp/screenshotrenamer-ghpages"
+rm -rf "$PAGES_DIR"
+git clone --branch gh-pages --single-branch --depth 1 \
+    "https://github.com/tpak/ScreenshotRenamer.git" "$PAGES_DIR" 2>/dev/null
 
-# Deploy to gh-pages branch
-CURRENT_BRANCH=$(git branch --show-current)
-git stash --include-untracked 2>/dev/null || true
-git fetch origin gh-pages || true
-
-if git rev-parse --verify origin/gh-pages >/dev/null 2>&1; then
-    git checkout gh-pages
-else
-    git checkout --orphan gh-pages
-    git rm -rf . 2>/dev/null || true
-fi
-
-cp /tmp/appcast.xml appcast.xml
+echo "$APPCAST_CONTENT" > "$PAGES_DIR/appcast.xml"
+cd "$PAGES_DIR"
 git add appcast.xml
 if ! git diff --cached --quiet; then
     git commit -m "Update appcast for v$VERSION"
@@ -263,9 +263,8 @@ if ! git diff --cached --quiet; then
 else
     echo "── Appcast unchanged."
 fi
-
-git checkout "$CURRENT_BRANCH"
-git stash pop 2>/dev/null || true
+cd - > /dev/null
+rm -rf "$PAGES_DIR"
 
 # ── Phase 9: Update Homebrew Cask ──────────────────────────────────
 
