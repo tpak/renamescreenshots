@@ -105,8 +105,6 @@ if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
     ./Scripts/inject-version.sh
     git add VERSION
     git commit -m "Bump version to $VERSION"
-    git push origin main
-    echo "── Version bumped and pushed."
 else
     echo "── Version already set to $VERSION."
 fi
@@ -182,9 +180,10 @@ echo "  ZIP SHA256: $ZIP_SHA256"
 
 # ── Phase 7: GitHub release ────────────────────────────────────────
 
-echo "── Creating git tag v$VERSION..."
+echo "── Creating git tag and pushing..."
 git tag -a "v$VERSION" -m "Release v$VERSION"
-git push origin "v$VERSION"
+# Push tag and version bump together so auto-tag.yml sees the tag already exists
+git push origin main "v$VERSION"
 
 echo "── Creating GitHub release..."
 
