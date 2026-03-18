@@ -72,7 +72,7 @@ if [[ "$CURRENT_VERSION" != "$VERSION" ]]; then
     echo "── Bumping version from $CURRENT_VERSION to $VERSION..."
     echo "$VERSION" > VERSION
     ./Scripts/inject-version.sh
-    git add VERSION
+    git add VERSION Sources/ScreenshotRenamer/Resources/Info.plist
     git commit -m "Bump version to $VERSION"
 fi
 
