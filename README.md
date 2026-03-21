@@ -17,7 +17,7 @@ Also handles 24-hour timestamps (prefix lowercasing) and parenthesized sequence 
 ### Homebrew (Recommended)
 
 ```bash
-brew tap tpak/screenshotrenamer
+brew tap tpak/tpak
 brew install --cask screenshot-renamer
 ```
 

@@ -282,14 +282,14 @@ done
 # ── Phase 9: Homebrew Cask (idempotent, verified) ──────────────────
 
 echo "── Updating Homebrew Cask..."
-TAP_DIR="/tmp/homebrew-screenshotrenamer"
+TAP_DIR="/tmp/homebrew-tpak"
 rm -rf "$TAP_DIR"
 
-if ! gh repo view tpak/homebrew-screenshotrenamer &>/dev/null; then
+if ! gh repo view tpak/homebrew-tpak &>/dev/null; then
     echo "  WARNING: Homebrew tap repo not found. Create it with:"
-    echo "    gh repo create tpak/homebrew-screenshotrenamer --public"
+    echo "    gh repo create tpak/homebrew-tpak --public"
 else
-    if ! gh repo clone tpak/homebrew-screenshotrenamer "$TAP_DIR"; then
+    if ! gh repo clone tpak/homebrew-tpak "$TAP_DIR"; then
         echo "Error: Failed to clone Homebrew tap repo"
         exit 1
     fi
@@ -343,8 +343,8 @@ else
 fi
 
 # Homebrew
-if gh repo view tpak/homebrew-screenshotrenamer &>/dev/null; then
-    CASK_VERSION=$(gh api repos/tpak/homebrew-screenshotrenamer/contents/Casks/screenshot-renamer.rb \
+if gh repo view tpak/homebrew-tpak &>/dev/null; then
+    CASK_VERSION=$(gh api repos/tpak/homebrew-tpak/contents/Casks/screenshot-renamer.rb \
         -H "Accept: application/vnd.github.v3.raw" 2>/dev/null | grep -o 'version "[^"]*"' | head -1 | cut -d'"' -f2)
     if [[ "$CASK_VERSION" == "$VERSION" ]]; then
         echo "  [PASS] Homebrew Cask: v$CASK_VERSION"
@@ -363,7 +363,7 @@ fi
 echo ""
 echo "  GitHub:   https://github.com/$REPO/releases/tag/v$VERSION"
 echo "  Appcast:  $APPCAST_URL"
-echo "  Homebrew: brew tap tpak/screenshotrenamer && brew install --cask screenshot-renamer"
+echo "  Homebrew: brew tap tpak/tpak && brew install --cask screenshot-renamer"
 echo ""
 echo "  Artifacts: $RELEASE_DIR/"
 echo ""
