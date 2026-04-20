@@ -30,3 +30,14 @@ The application is **privacy-respecting and contains no tracking parts**. It ope
 
 ---
 *Conducted by Gemini CLI on April 20, 2026*
+
+## Additional Review (GitHub Copilot)
+
+Review date/time (UTC): **2026-04-20T03:27:08Z**
+
+Additional findings and recommended doc clarifications:
+
+* **No additional tracking found in current source review.** I re-checked for telemetry/network SDK usage and did not find Firebase/AppCenter/analytics-style integrations.
+* **Launch-at-login legacy path:** On macOS 11–12, the app invokes `/bin/launchctl` to load/unload the app’s own LaunchAgent plist in the user home directory. This is local-only behavior and does not introduce data exfiltration.
+* **Sparkle caveat to document explicitly:** While app code does not implement custom telemetry, update checks still involve standard HTTPS requests to the appcast host and release assets. As with any network request, server-side logs (e.g., IP, user-agent) may exist outside the app.
+* **Local logging caveat:** `os_log` and optional debug logs can include screenshot filenames/paths (potentially containing personal info in filenames). They remain local unless the user explicitly shares logs.
